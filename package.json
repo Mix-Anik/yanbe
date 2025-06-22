@@ -1,0 +1,13 @@
+{
+  "name": "yanbe",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Mix-Anik",
+  "scripts": {},
+  "type": "module",
+  "license": "MIT",
+  "description": "Yet Another Node-Based Editor",
+  "devDependencies": {
+    "express": "^5.1.0"
+  }
+}

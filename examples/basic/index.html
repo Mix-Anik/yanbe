@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Basic</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <div id="editor">
+    <div id="viewport">
+      <svg id="connections"></svg>
+    </div>
+  </div>
+  <script type="module">
+    import { Editor, Node, Connection } from "./src/lib.js";
+
+    const editor = new Editor('editor');
+    const nodeA = new Node(100, 100, 'Node A', editor);
+    const nodeB = new Node(300, 250, 'Node B', editor);
+    editor.addNode(nodeA);
+    editor.addNode(nodeB);
+    nodeA.connect(nodeB);
+  </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#editor {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    background-image: radial-gradient(#4e4e4e 1px, transparent 0);
+    background-size: 20px 20px;
+    background-position: 10px 10px;
+}
+
+#viewport {
+    position: absolute;
+    overflow: visible;
+    transform-origin: 0 0;
+}
+
+.node {
+    position: absolute;
+    width: 120px;
+    height: 60px;
+    background: #145d6473;
+    border: 2px solid #aaa;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    line-height: 60px;
+    user-select: none;
+    cursor: pointer;
+}
+
+.port {
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    border: 4px solid #aaa;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.port:hover {
+    border-color: #d4a017;
+}
+
+.connections {
+    position: absolute;
+    overflow: visible;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.input {
+    left: -11px;
+}
+
+.output {
+    right: -11px;
+}
+
+svg {
+    overflow: visible;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
+
+.active {
+    border-color: #d4a017;
+}
