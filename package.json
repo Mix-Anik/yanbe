@@ -1,13 +1,39 @@
 {
   "name": "yanbe",
+  "description": "Yet Another Node-Based Editor",
   "version": "1.0.0",
-  "main": "index.js",
   "author": "Mix-Anik",
-  "scripts": {},
+  "scripts": {
+    "build": "vite build"
+  },
+  "main": "dist/yanbe.umd.cjs",
+  "module": "dist/yanbe.js",
+  "files": [
+    "dist"
+  ],
+  "style": "dist/yanbe.css",
+  "exports": {
+    ".": {
+      "import": "./dist/yanbe.js",
+      "require": "./dist/yanbe.umd.cjs"
+    },
+    "./styles.css": "./dist/yanbe.css"
+  },
   "type": "module",
   "license": "MIT",
-  "description": "Yet Another Node-Based Editor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mix-Anik/yanbe.git"
+  },
+  "keywords": [
+    "nodejs",
+    "javascript",
+    "graph-editor",
+    "visual-programming",
+    "node-editor"
+  ],
   "devDependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "vite": "^6.3.5"
   }
 }
