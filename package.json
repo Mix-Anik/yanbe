@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "author": "Mix-Anik",
   "scripts": {
+    "dev": "vite dev",
     "build": "vite build"
   },
   "main": "dist/yanbe.umd.cjs",
@@ -33,7 +34,6 @@
     "node-editor"
   ],
   "devDependencies": {
-    "express": "^5.1.0",
     "vite": "^6.3.5"
   }
 }

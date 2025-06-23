@@ -20,4 +20,7 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    open: '/examples/testing/index.html'
+  }
 });
