@@ -1,8 +1,7 @@
-import { Editor } from "./editor.js";
 import { Port } from "./port.js";
 import { Connection } from "./connection.js";
 import { lerp, roundToStep } from "../helpers.js";
-
+import { GRID } from "../constants.js";
 
 export class Node {
     constructor(x, y, name, editor) {
@@ -12,8 +11,6 @@ export class Node {
         this.name = name;
         this.element = null;
         this.ports = null;
-        this.inputs = [];
-        this.outputs = [];
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
         this.create();
@@ -29,61 +26,60 @@ export class Node {
             input: new Port('input', this),
             output: new Port('output', this)
         };
+        this.element.__ref = this;
         this.editor.viewport.appendChild(this.element);
-        this.element.addEventListener('mousedown', this.onMouseDown);
     }
 
-    onMouseDown = (e) => {
-        if (e.target.classList.contains('port')) return;
+    connect(node) {
+        const connection = new Connection(this.ports.output, node.ports.input, this.editor.svg);
+        this.ports.output.connections.set(node.ports.input, connection);
+        node.ports.input.connections.set(this.ports.output, connection);
+    }
 
-        this.editor.nodeDragging = true;
-        this.element.classList.add('active');
-        const startMousePos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
-        const nodeOffset = {x: startMousePos.x - this.x, y: startMousePos.y - this.y};
+    disconnect(node) {
+        this.ports.output.connections.delete(node.ports.input);
+        node.ports.input.connections.delete(this.ports.output);
+    }
 
+    redrawConnections() {
+        this.ports.input.connections.forEach(conn => conn.update());
+        this.ports.output.connections.forEach(conn => conn.update());
+    }
+
+    static move(instance, startPos) {
+        instance.element.classList.add('active');
+        const startMousePos = instance.editor.calcOffsetPos(startPos);
+        const nodeOffset = {x: startMousePos.x - instance.x, y: startMousePos.y - instance.y};
+        const animate = () => {
+            instance.x = lerp(instance.x, instance.wishPos.x, 0.2);
+            instance.y = lerp(instance.y, instance.wishPos.y, 0.2);
+            instance.element.style.left = `${instance.x}px`;
+            instance.element.style.top = `${instance.y}px`;
+            instance.redrawConnections();
+
+            if (Math.abs(instance.x - instance.wishPos.x) > 0.5 || Math.abs(instance.y - instance.wishPos.y) > 0.5)
+                requestAnimationFrame(animate);
+            else
+                instance.animating = false;
+        }
         const onDrag = (event) => {
-            const endMousePos = this.editor.calcOffsetPos({x: event.clientX, y: event.clientY});
-            this.wishPos = {
-                x: roundToStep((endMousePos.x - nodeOffset.x), Editor.gridSize),
-                y: roundToStep((endMousePos.y - nodeOffset.y), Editor.gridSize)
+            const endMousePos = instance.editor.calcOffsetPos({x: event.clientX, y: event.clientY});
+            instance.wishPos = {
+                x: roundToStep((endMousePos.x - nodeOffset.x), GRID.SIZE),
+                y: roundToStep((endMousePos.y - nodeOffset.y), GRID.SIZE)
             }
 
-            if (!this.animating) {
-                this.animating = true;
-                requestAnimationFrame(this.animate);
+            if (!instance.animating) {
+                instance.animating = true;
+                requestAnimationFrame(animate);
             }
         }
         
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', () => {
             document.removeEventListener('mousemove', onDrag);
-            this.element.classList.remove('active');
-            this.editor.nodeDragging = false;
+            instance.element.classList.remove('active');
+            instance.editor.nodeDragging = false;
         }, { once: true });
-    }
-
-    animate = () => {
-        this.x = lerp(this.x, this.wishPos.x, 0.2);
-        this.y = lerp(this.y, this.wishPos.y, 0.2);
-
-        this.element.style.left = `${this.x}px`;
-        this.element.style.top = `${this.y}px`;
-        this.redrawConnections();
-
-        if (Math.abs(this.x - this.wishPos.x) > 0.5 || Math.abs(this.y - this.wishPos.y) > 0.5)
-            requestAnimationFrame(this.animate);
-        else
-            this.animating = false;
-    }
-
-    connect(node) {
-        const connection = new Connection(this.ports.output, node.ports.input, this.editor.svg);
-        this.outputs.push(connection);
-        node.inputs.push(connection);
-    }
-
-    redrawConnections() {
-        this.inputs.forEach(conn => conn.update());
-        this.outputs.forEach(conn => conn.update());
     }
 }
