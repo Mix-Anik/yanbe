@@ -66,6 +66,5 @@ export class PreviewConnection {
 
     hide() {
         this.element.style.display = 'none';
-        this.element.setAttribute('d', null);
     }
 }

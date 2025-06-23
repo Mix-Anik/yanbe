@@ -94,6 +94,7 @@ export class Editor {
 
         const connection = e.target.__ref;
         this.activePort = connection.from;
+        this.previewConnection.update({x: e.clientX, y: e.clientY});
         this.previewConnection.show();
         connection.remove();
         
@@ -105,6 +106,7 @@ export class Editor {
         const port = e.target.__ref;
         if (port.type === 'output') {
             this.activePort = port;
+            this.previewConnection.update({x: e.clientX, y: e.clientY});
             this.previewConnection.show();
         } else if (port.type === 'input' && this.activePort) {
             this.activePort.node.connect(port.node);
