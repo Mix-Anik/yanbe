@@ -11,9 +11,6 @@ export class Connection {
 
     create() {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        this.element.setAttribute('stroke', 'white');
-        this.element.setAttribute('stroke-width', '4');
-        this.element.setAttribute('fill', 'none');
         this.element.setAttribute('class', 'connection');
         this.element.__ref = this;
         this.svg.appendChild(this.element);
@@ -44,10 +41,7 @@ export class PreviewConnection {
 
     create() {
         this.element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        this.element.setAttribute('stroke', 'gray');
-        this.element.setAttribute('stroke-width', '4');
-        this.element.setAttribute('stroke-dasharray', '4,4');
-        this.element.setAttribute('fill', 'none');
+        this.element.setAttribute('class', 'preview-connection');
         this.element.style.display = 'none';
         this.editor.svg.appendChild(this.element);
     }

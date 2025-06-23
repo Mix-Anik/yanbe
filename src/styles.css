@@ -61,9 +61,23 @@ body {
     border-color: var(--accent);
 }
 
+.connection {
+    stroke: white;
+    stroke-width: 6;
+    fill: none;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
 .connection:hover {
     stroke: var(--accent);
-    stroke-width: 4;
+}
+
+.preview-connection {
+    stroke: gray;
+    stroke-width: 6;
+    stroke-dasharray: 4,4;
+    fill: none;
 }
 
 .input {
@@ -80,10 +94,6 @@ svg {
     top: 0;
     left: 0;
     pointer-events: none;
-}
-
-path {
-    pointer-events: auto;
 }
 
 .active {
