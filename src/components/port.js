@@ -5,7 +5,6 @@ export class Port {
         this.connections = new Map();
         this.element = null;
         this.allow = options.allow ?? [];
-        this.create();
     }
 
     create() {

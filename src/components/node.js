@@ -4,22 +4,21 @@ import { lerp, roundToStep } from "../helpers.js";
 import { GRID, PORT_TYPE } from "../constants.js";
 
 export class Node {
-    constructor(type, x, y, editor, options={}) {
-        this.editor = editor;
+    constructor(type, x, y, options={}) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.element = null;
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
-        this.create();
         this.ports = {
             input: new Port(PORT_TYPE.INPUT, this, {allow: options.allowedTypes}),
             output: new Port(PORT_TYPE.OUTPUT, this)
         };
     }
 
-    create() {
+    create(editor) {
+        this.editor = editor;
         this.element = document.createElement('div');
         this.element.className = 'node';
         this.element.style.left = `${this.x}px`;
@@ -27,9 +26,14 @@ export class Node {
         this.element.textContent = this.type;
         this.element.__ref = this;
         this.editor.viewport.appendChild(this.element);
+        this.ports.input.create();
+        this.ports.output.create();
     }
 
     connect(node) {
+        if (!this.element || !node.element)
+            throw ReferenceError('Nodes should be added to Editor before creating a connection.');
+
         const connection = new Connection(this.ports.output, node.ports.input, this.editor.svg);
         this.ports.output.connections.set(node.ports.input, connection);
         node.ports.input.connections.set(this.ports.output, connection);

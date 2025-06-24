@@ -29,10 +29,12 @@ export class Editor {
     addNode(x, y, name) {
         const node = new Node(x, y, name, this);
         this.nodes.push(node);
+        node.create(this);
     }
 
     addNode(node) {
         this.nodes.push(node);
+        node.create(this);
     }
 
     calcOffsetPos(pos) {
@@ -141,7 +143,7 @@ export class Editor {
 
     highlightConnectable() {
         this.resetHighlighting();
-        
+
         for (const node of this.nodes) {
             if (!node.ports.input.canConnect(this.activePort) && node != this.activePort.node)
                 node.element.classList.add('disabled');

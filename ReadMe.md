@@ -32,8 +32,8 @@ You can check out various usage examples located in [`examples`](https://github.
         import { Editor, Node, Connection } from "/src/lib.js";
 
         const editor = new Editor('editor');
-        const nodeA = new Node('Node A', 100, 100, editor);
-        const nodeB = new Node('Node B', 300, 250, editor);
+        const nodeA = new Node('Node A', 100, 100);
+        const nodeB = new Node('Node B', 300, 250);
         editor.addNode(nodeA);
         editor.addNode(nodeB);
         nodeA.connect(nodeB);
