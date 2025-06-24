@@ -1,9 +1,10 @@
 export class Port {
-    constructor(type, node) {
+    constructor(type, node, options={}) {
         this.type = type;
         this.node = node;
         this.connections = new Map();
         this.element = null;
+        this.allow = options.allow ?? [];
         this.create();
     }
 
@@ -21,5 +22,15 @@ export class Port {
             x: rect.left + rect.width / 2,
             y: rect.top + rect.height / 2
         });
+    }
+
+    canConnect(outputPort) {
+        if (outputPort.node == this.node)
+            return false;
+
+        if (this.allow.length && !this.allow.includes(outputPort.node.type))
+            return false;
+
+        return true;
     }
 }

@@ -5,4 +5,9 @@ export const GRID = {
     MAX_SCALE: 3
 };
 
+export const PORT_TYPE = {
+    OUTPUT: 'output',
+    INPUT: 'input'
+}
+
 export const BEZIER_STRENGTH = 100;

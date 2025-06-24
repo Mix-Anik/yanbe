@@ -1,7 +1,7 @@
 import { Node } from "./node.js";
 import { PreviewConnection } from "./connection.js";
 import { clamp } from "../helpers.js";
-import { GRID } from '../constants.js';
+import { GRID, PORT_TYPE } from '../constants.js';
 
 export class Editor {
     constructor(containerId) {
@@ -96,22 +96,24 @@ export class Editor {
         this.activePort = connection.from;
         this.previewConnection.update({x: e.clientX, y: e.clientY});
         this.previewConnection.show();
+        this.highlightConnectable();
         connection.remove();
-        
     }
 
     onPortClick(e) {
         if (!e.target.classList.contains('port')) return;
 
         const port = e.target.__ref;
-        if (port.type === 'output') {
+        if (port.type === PORT_TYPE.OUTPUT) {
             this.activePort = port;
             this.previewConnection.update({x: e.clientX, y: e.clientY});
             this.previewConnection.show();
-        } else if (port.type === 'input' && this.activePort) {
+            this.highlightConnectable();
+        } else if (port.type === PORT_TYPE.INPUT && this.activePort && port.canConnect(this.activePort)) {
             this.activePort.node.connect(port.node);
             this.activePort = null;
             this.previewConnection.hide();
+            this.resetHighlighting();
         }
     }
 
@@ -120,6 +122,7 @@ export class Editor {
 
         this.activePort = null;
         this.previewConnection.hide();
+        this.resetHighlighting();
     }
 
     onActivePortMove(e) {
@@ -134,5 +137,20 @@ export class Editor {
         const node = e.target.__ref;
         this.nodeDragging = true;
         Node.move(node, {x: e.clientX, y: e.clientY});
+    }
+
+    highlightConnectable() {
+        this.resetHighlighting();
+        
+        for (const node of this.nodes) {
+            if (!node.ports.input.canConnect(this.activePort) && node != this.activePort.node)
+                node.element.classList.add('disabled');
+        }
+    }
+
+    resetHighlighting() {
+        for (const node of this.nodes) {
+            node.element.classList.remove('disabled');
+        }
     }
 }

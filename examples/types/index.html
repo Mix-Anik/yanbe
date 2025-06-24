@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Basic</title>
+  <title>Types</title>
   <link rel="stylesheet" href="yanbe.css">
 </head>
 <body>
@@ -16,10 +16,11 @@
 
     const editor = new Editor('editor');
     const nodeA = new Node('Node A', 100, 100, editor);
-    const nodeB = new Node('Node B', 300, 250, editor);
+    const nodeB = new Node('Node B', 100, 300, editor);
+    const nodeC = new Node('Node C', 400, 200, editor, {allowedTypes: ['Node A']});
     editor.addNode(nodeA);
     editor.addNode(nodeB);
-    nodeA.connect(nodeB);
+    editor.addNode(nodeC);
   </script>
 </body>
 </html>

@@ -46,6 +46,10 @@ body {
     cursor: pointer;
 }
 
+.node.disabled {
+    opacity: 50%;
+}
+
 .port {
     width: 14px;
     height: 14px;

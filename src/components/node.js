@@ -1,19 +1,22 @@
 import { Port } from "./port.js";
 import { Connection } from "./connection.js";
 import { lerp, roundToStep } from "../helpers.js";
-import { GRID } from "../constants.js";
+import { GRID, PORT_TYPE } from "../constants.js";
 
 export class Node {
-    constructor(x, y, name, editor) {
+    constructor(type, x, y, editor, options={}) {
         this.editor = editor;
         this.x = x;
         this.y = y;
-        this.name = name;
+        this.type = type;
         this.element = null;
-        this.ports = null;
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
         this.create();
+        this.ports = {
+            input: new Port(PORT_TYPE.INPUT, this, {allow: options.allowedTypes}),
+            output: new Port(PORT_TYPE.OUTPUT, this)
+        };
     }
 
     create() {
@@ -21,11 +24,7 @@ export class Node {
         this.element.className = 'node';
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
-        this.element.textContent = this.name;
-        this.ports = {
-            input: new Port('input', this),
-            output: new Port('output', this)
-        };
+        this.element.textContent = this.type;
         this.element.__ref = this;
         this.editor.viewport.appendChild(this.element);
     }
