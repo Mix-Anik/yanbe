@@ -1,7 +1,6 @@
-import { Port } from "./port.js";
-import { Connection } from "./connection.js";
+import { InputPort, OutputPort } from "./port.js";
 import { lerp, roundToStep } from "../helpers.js";
-import { GRID, PORT_TYPE } from "../constants.js";
+import { GRID } from "../constants.js";
 
 export class Node {
     constructor(type, x, y, options={}) {
@@ -12,8 +11,8 @@ export class Node {
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
         this.ports = {
-            input: new Port(PORT_TYPE.INPUT, this, {allow: options.allowedTypes}),
-            output: new Port(PORT_TYPE.OUTPUT, this)
+            input: new InputPort(this, options.input ?? {}),
+            output: new OutputPort(this, options.output ?? {})
         };
     }
 
@@ -34,14 +33,11 @@ export class Node {
         if (!this.element || !node.element)
             throw ReferenceError('Nodes should be added to Editor before creating a connection.');
 
-        const connection = new Connection(this.ports.output, node.ports.input, this.editor.svg);
-        this.ports.output.connections.set(node.ports.input, connection);
-        node.ports.input.connections.set(this.ports.output, connection);
+        node.ports.input.createConnection(this.ports.output);
     }
 
     disconnect(node) {
-        this.ports.output.connections.delete(node.ports.input);
-        node.ports.input.connections.delete(this.ports.output);
+        node.ports.input.removeConnection(this.ports.output);
     }
 
     redrawConnections() {

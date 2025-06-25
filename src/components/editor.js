@@ -26,10 +26,9 @@ export class Editor {
         document.addEventListener('mousemove', (e) => this.onActivePortMove(e));
     }
 
-    addNode(x, y, name) {
-        const node = new Node(x, y, name, this);
-        this.nodes.push(node);
-        node.create(this);
+    addNode(x, y, name, options={}) {
+        const node = new Node(x, y, name, options);
+        this.addNode(node);
     }
 
     addNode(node) {
@@ -98,15 +97,15 @@ export class Editor {
         this.activePort = connection.from;
         this.previewConnection.update({x: e.clientX, y: e.clientY});
         this.previewConnection.show();
-        this.highlightConnectable();
         connection.remove();
+        this.highlightConnectable();
     }
 
     onPortClick(e) {
         if (!e.target.classList.contains('port')) return;
 
         const port = e.target.__ref;
-        if (port.type === PORT_TYPE.OUTPUT) {
+        if (port.type === PORT_TYPE.OUTPUT && port.canConnect()) {
             this.activePort = port;
             this.previewConnection.update({x: e.clientX, y: e.clientY});
             this.previewConnection.show();

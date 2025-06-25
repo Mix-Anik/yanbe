@@ -1,10 +1,12 @@
+import { Connection } from "./connection.js";
+import { PORT_TYPE } from "../constants.js";
+
 export class Port {
-    constructor(type, node, options={}) {
+    constructor(type, node) {
         this.type = type;
         this.node = node;
         this.connections = new Map();
         this.element = null;
-        this.allow = options.allow ?? [];
     }
 
     create() {
@@ -23,11 +25,47 @@ export class Port {
         });
     }
 
+    createConnection(outputPort) {
+        const connection = new Connection(outputPort, this, this.node.editor.svg);
+        this.connections.set(outputPort, connection);
+        outputPort.connections.set(this, connection);
+    }
+
+    removeConnection(outputPort) {
+        this.connections.delete(outputPort);
+        outputPort.connections.delete(this);
+    }
+}
+
+export class InputPort extends Port {
+    constructor(node, options={}) {
+        super(PORT_TYPE.INPUT, node);
+        this.allow = options.allow ?? [];
+        this.many = options.many ?? true;
+    }
+
     canConnect(outputPort) {
         if (outputPort.node == this.node)
             return false;
 
         if (this.allow.length && !this.allow.includes(outputPort.node.type))
+            return false;
+
+        if (!this.many && this.connections.size)
+            return false;
+
+        return true;
+    }
+}
+
+export class OutputPort extends Port {
+    constructor(node, options={}) {
+        super(PORT_TYPE.OUTPUT, node);
+        this.many = options.many ?? true;
+    }
+
+    canConnect() {
+        if (!this.many && this.connections.size)
             return false;
 
         return true;
