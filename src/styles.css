@@ -1,12 +1,16 @@
 :root {
-  --accent: #d4a017;
-  --bg: #1a1a1a;
-  --bg-pattern: #4e4e4e;
-  --n-bg: #145d6473;
-  --n-border: #aaa;
-  --n-text: white;
-  --p-bg: white;
-  --p-border: #aaa;
+    --accent: #d4a017;
+    --bg: #1a1a1a;
+    --bg-pattern: #4e4e4e;
+    --n-bg: #145d6473;
+    --n-border: #aaa;
+    --n-text: white;
+    --p-bg: white;
+    --p-border: #aaa;
+    --ctx-menu-bg: #145d64aa;
+    --ctx-menu-border: white;
+    --ctx-menu-btn: white;
+    --ctx-menu-btn-hover: black;
 }
 
 body {
@@ -80,7 +84,7 @@ body {
 .preview-connection {
     stroke: gray;
     stroke-width: 6;
-    stroke-dasharray: 4,4;
+    stroke-dasharray: 4, 4;
     fill: none;
 }
 
@@ -102,4 +106,44 @@ svg {
 
 .active {
     border-color: var(--accent);
+}
+
+.ctx-menu {
+    position: absolute;
+    background-color: var(--ctx-menu-bg);
+    width: 12rem;
+    border: 1px dashed var(--ctx-menu-border);
+}
+
+.ctx-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ctx-menu ul li {
+    height: 100%;
+}
+
+.ctx-menu-btn {
+    display: flex;
+    justify-content: space-between;
+    color: var(--ctx-menu-btn);
+    background: none;
+    border: none;
+    padding: 10px 10px;
+    cursor: pointer;
+    font-family: monospace;
+    font-size: 14px;
+    width: 100%;
+}
+
+.ctx-menu-btn .shortcut {
+    opacity: 70%;
+    font-size: 12px;
+}
+
+.ctx-menu-btn:hover {
+    background-color: var(--accent);
+    color: var(--ctx-menu-btn-hover);
 }

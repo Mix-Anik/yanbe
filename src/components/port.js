@@ -16,6 +16,14 @@ export class Port {
         this.node.element.appendChild(this.element);
     }
 
+    remove() {
+        for (let connection of this.connections.values()) {
+            connection.remove();
+        }
+        this.element.remove();
+        this.element = null;
+    }
+
     getCenter() {
         const rect = this.element.getBoundingClientRect();
 

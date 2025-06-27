@@ -1,5 +1,6 @@
 import { Node } from "./node.js";
 import { PreviewConnection } from "./connection.js";
+import { ContextMenu } from "./menu.js";
 import { clamp } from "../helpers.js";
 import { GRID, PORT_TYPE } from '../constants.js';
 
@@ -16,6 +17,7 @@ export class Editor {
         this.nodeDragging = false;
         this.activePort = null;
         this.previewConnection = new PreviewConnection(this);
+        this.contextMenu = new ContextMenu(this);
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
@@ -24,11 +26,6 @@ export class Editor {
         document.addEventListener('click', (e) => this.onActivePortClick(e));
         document.addEventListener('mousedown', (e) => this.onNodeHold(e));
         document.addEventListener('mousemove', (e) => this.onActivePortMove(e));
-    }
-
-    addNode(x, y, name, options={}) {
-        const node = new Node(x, y, name, options);
-        this.addNode(node);
     }
 
     addNode(node) {

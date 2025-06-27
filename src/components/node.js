@@ -29,6 +29,14 @@ export class Node {
         this.ports.output.create();
     }
 
+    remove() {
+        const idx = this.editor.nodes.indexOf(this);
+        this.editor.nodes.splice(idx, 1);
+        this.ports.input.remove();
+        this.ports.output.remove();
+        this.element.remove();
+    }
+
     connect(node) {
         if (!this.element || !node.element)
             throw ReferenceError('Nodes should be added to Editor before creating a connection.');
