@@ -1,4 +1,4 @@
-import { Node } from "./node";
+import { Node } from "./node.js";
 
 export class ContextMenu {
     constructor(editor) {
@@ -7,6 +7,7 @@ export class ContextMenu {
             {label: 'Add Node', shortcut: null, handler: (e) => this.addNodeHandler(e), ctx: null},
             {label: 'Delete', shortcut: 'del', handler: (ctx) => this.deleteHandler(ctx), ctx: ['node']}
         ];
+        this.keysPressed = new Set();
 
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -16,6 +17,19 @@ export class ContextMenu {
 
         document.addEventListener('click', () => {
             this.hide();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            this.keysPressed.add(e.key);
+
+            if (this.keysPressed.has('Delete') && this.keysPressed.size == 1) {
+                this.deleteHandler(e);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            this.keysPressed.delete(e.key);
         });
     }
 
@@ -29,8 +43,12 @@ export class ContextMenu {
         this.element.appendChild(btnList);
 
         for (let btn of this.buttons) {
-            if (btn.ctx && !btn.ctx.includes(e.target.className))
-                continue;
+            if (btn.ctx) {
+                if (!btn.ctx.some(c => e.target.classList.contains(c)))
+                    continue;
+                
+                this.editor.addToSelection(e.target.__ref);
+            }
 
             const el = document.createElement('li');
             el.innerHTML = `
@@ -39,8 +57,7 @@ export class ContextMenu {
                     <kbd class="shortcut">${btn.shortcut ?? ''}</kbd>
                 </button>
             `;
-            if (btn.ctx) el.addEventListener('click', () => btn.handler(e.target));
-            else el.addEventListener('click', btn.handler);
+            el.addEventListener('click', btn.handler);
             btnList.appendChild(el);
         }
 
@@ -57,8 +74,10 @@ export class ContextMenu {
         this.editor.addNode(node);
     }
 
-    deleteHandler(ctx) {
-        ctx.__ref.remove();
+    deleteHandler(e) {
+        for (let obj of this.editor.selection) {
+            obj.remove();
+        }
     }
 }
  

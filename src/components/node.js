@@ -54,7 +54,6 @@ export class Node {
     }
 
     static move(instance, startPos) {
-        instance.element.classList.add('active');
         const startMousePos = instance.editor.calcOffsetPos(startPos);
         const nodeOffset = {x: startMousePos.x - instance.x, y: startMousePos.y - instance.y};
         const animate = () => {
@@ -85,7 +84,6 @@ export class Node {
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', () => {
             document.removeEventListener('mousemove', onDrag);
-            instance.element.classList.remove('active');
             instance.editor.nodeDragging = false;
         }, { once: true });
     }

@@ -18,9 +18,11 @@ export class Editor {
         this.activePort = null;
         this.previewConnection = new PreviewConnection(this);
         this.contextMenu = new ContextMenu(this);
+        this.selection = [];
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
+        document.addEventListener('click', (e) => this.onClick(e));
         document.addEventListener('click', (e) => this.onConnectionClick(e));
         document.addEventListener('click', (e) => this.onPortClick(e));
         document.addEventListener('click', (e) => this.onActivePortClick(e));
@@ -123,6 +125,13 @@ export class Editor {
         this.resetHighlighting();
     }
 
+    onClick(e) {
+        this.clearSelection();
+
+        if (e.target.classList.contains('node'))
+            this.addToSelection(e.target.__ref);
+    }
+
     onActivePortMove(e) {
         if (!this.activePort) return;
 
@@ -133,6 +142,7 @@ export class Editor {
         if (!e.target.classList.contains('node')) return;
 
         const node = e.target.__ref;
+        this.addToSelection(node);
         this.nodeDragging = true;
         Node.move(node, {x: e.clientX, y: e.clientY});
     }
@@ -150,5 +160,29 @@ export class Editor {
         for (const node of this.nodes) {
             node.element.classList.remove('disabled');
         }
+    }
+
+    addToSelection(obj) {
+        if (!obj || obj.element.classList.contains('active') || this.selection.includes(obj))
+            return;
+
+        obj.element.classList.add('active');
+        this.selection.push(obj);
+    }
+
+    removeFromSelection(obj) {
+        obj.element.classList.remove('active');
+        const idx = this.selection.indexOf(obj);
+        this.selection.splice(idx, 1);
+    }
+
+    clearSelection() {
+        if (!this.selection)
+            return;
+
+        for (let obj of this.selection)
+            obj.element.classList.remove('active');
+
+        this.selection = [];
     }
 }
