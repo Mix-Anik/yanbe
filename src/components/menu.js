@@ -8,6 +8,7 @@ export class ContextMenu {
             {label: 'Delete', shortcut: 'del', handler: (ctx) => this.deleteHandler(ctx), ctx: ['node']}
         ];
         this.keysPressed = new Set();
+        this.listeners = [];
 
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -58,6 +59,7 @@ export class ContextMenu {
                 </button>
             `;
             el.addEventListener('click', btn.handler);
+            this.listeners.push({element: el, type: 'click', handler: btn.handler});
             btnList.appendChild(el);
         }
 
@@ -65,7 +67,9 @@ export class ContextMenu {
     }
 
     hide() {
-        if (this.element) 
+        this.listeners.forEach(entry => entry.element.removeEventListener(entry.type, entry.handler));
+
+        if (this.element)
             this.element.remove();
     }
 
@@ -80,4 +84,3 @@ export class ContextMenu {
         }
     }
 }
- 
