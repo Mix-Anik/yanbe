@@ -3,6 +3,7 @@ import { PreviewConnection } from "./connection.js";
 import { ContextMenu } from "./menu.js";
 import { clamp } from "../helpers.js";
 import { GRID, PORT_TYPE } from '../constants.js';
+import { RectSelectTool } from "./selection.js";
 
 export class Editor {
     constructor(containerId) {
@@ -14,11 +15,12 @@ export class Editor {
         this.tx = 0;
         this.ty = 0;
 
-        this.nodeDragging = false;
+        this.isDragging = false;
         this.activePort = null;
-        this.previewConnection = new PreviewConnection(this);
-        this.contextMenu = new ContextMenu(this);
         this.selection = [];
+        // this.previewConnection = new PreviewConnection(this);
+        // this.contextMenu = new ContextMenu(this);
+        // this.selector = new RectSelectTool(this);
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
@@ -28,6 +30,10 @@ export class Editor {
         document.addEventListener('click', (e) => this.onActivePortClick(e));
         document.addEventListener('mousedown', (e) => this.onNodeHold(e));
         document.addEventListener('mousemove', (e) => this.onActivePortMove(e));
+
+        this.previewConnection = new PreviewConnection(this);
+        this.contextMenu = new ContextMenu(this);
+        this.selector = new RectSelectTool(this);
     }
 
     addNode(node) {
@@ -69,7 +75,7 @@ export class Editor {
     }
 
     pan = (e) => {
-        if (e.target != this.element || this.nodeDragging) return;
+        if (e.button != 1 || e.target != this.element || this.isDragging) return;
 
         let startMousePos = {x: e.clientX, y: e.clientY};
 
@@ -143,7 +149,7 @@ export class Editor {
 
         const node = e.target.__ref;
         this.addToSelection(node);
-        this.nodeDragging = true;
+        this.isDragging = true;
         Node.move(node, {x: e.clientX, y: e.clientY});
     }
 
@@ -163,8 +169,10 @@ export class Editor {
     }
 
     addToSelection(obj) {
+        //console.log(obj);
         if (!obj || obj.element.classList.contains('active') || this.selection.includes(obj))
             return;
+        console.log(obj);
 
         obj.element.classList.add('active');
         this.selection.push(obj);

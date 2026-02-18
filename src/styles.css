@@ -147,3 +147,11 @@ svg {
     background-color: var(--accent);
     color: var(--ctx-menu-btn-hover);
 }
+
+.selection {
+  position: absolute;
+  border: 1px dashed var(--accent);
+  background-color: #d4a0170f;
+  display: block;
+  pointer-events: none;
+}

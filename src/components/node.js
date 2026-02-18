@@ -84,7 +84,7 @@ export class Node {
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', () => {
             document.removeEventListener('mousemove', onDrag);
-            instance.editor.nodeDragging = false;
+            instance.editor.isDragging = false;
         }, { once: true });
     }
 }
