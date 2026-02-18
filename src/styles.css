@@ -155,3 +155,10 @@ svg {
   display: block;
   pointer-events: none;
 }
+
+.selection-bounds {
+  position: absolute;
+  border: 1px dashed var(--accent);
+  pointer-events: all;
+  cursor: move;
+}

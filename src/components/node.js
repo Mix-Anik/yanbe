@@ -62,6 +62,7 @@ export class Node {
             instance.element.style.left = `${instance.x}px`;
             instance.element.style.top = `${instance.y}px`;
             instance.redrawConnections();
+            instance.editor.updateSelectionBounds();
 
             if (Math.abs(instance.x - instance.wishPos.x) > 0.5 || Math.abs(instance.y - instance.wishPos.y) > 0.5)
                 requestAnimationFrame(animate);
