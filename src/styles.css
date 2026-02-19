@@ -58,7 +58,6 @@ body {
     width: 14px;
     height: 14px;
     background: var(--p-bg);
-    border-radius: 50%;
     border: 4px solid var(--p-border);
     position: absolute;
     top: 50%;
@@ -90,10 +89,14 @@ body {
 
 .input {
     left: -11px;
+    border-radius: 50%;
 }
 
 .output {
     right: -11px;
+    width: 12px;
+    height: 12px;
+    transform: translateY(-50%) rotate(45deg);
 }
 
 svg {
