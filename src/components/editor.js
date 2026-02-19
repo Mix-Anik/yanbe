@@ -205,4 +205,17 @@ export class Editor {
     updateSelectionBounds() {
         this.selectionBounds.update(this.selection);
     }
+
+    toJSON() {
+        const connections = [];
+        for (const node of this.nodes) {
+            node.ports.output.connections.forEach(conn => connections.push(conn.toJSON()));
+        }
+
+        return {
+            viewport: { scale: this.scale, tx: this.tx, ty: this.ty },
+            nodes: this.nodes.map(node => node.toJSON()),
+            connections
+        };
+    }
 }

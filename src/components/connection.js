@@ -30,6 +30,10 @@ export class Connection {
         this.element.remove();
         this.element = null;
     }
+
+    toJSON() {
+        return { from: this.from.node.id, to: this.to.node.id };
+    }
 }
 
 

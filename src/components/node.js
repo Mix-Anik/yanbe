@@ -3,7 +3,10 @@ import { lerp, roundToStep } from "../helpers.js";
 import { GRID } from "../constants.js";
 
 export class Node {
+    static _nextId = 0;
+
     constructor(type, x, y, options={}) {
+        this.id = Node._nextId++;
         this.x = x;
         this.y = y;
         this.type = type;
@@ -51,6 +54,19 @@ export class Node {
     redrawConnections() {
         this.ports.input.connections.forEach(conn => conn.update());
         this.ports.output.connections.forEach(conn => conn.update());
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            type: this.type,
+            x: Math.round(this.x),
+            y: Math.round(this.y),
+            ports: {
+                input: this.ports.input.toJSON(),
+                output: this.ports.output.toJSON()
+            }
+        };
     }
 
     static move(instance, startPos) {

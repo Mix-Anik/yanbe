@@ -43,6 +43,10 @@ export class Port {
         this.connections.delete(outputPort);
         outputPort.connections.delete(this);
     }
+
+    toJSON() {
+        return { type: this.type };
+    }
 }
 
 export class InputPort extends Port {
@@ -50,6 +54,10 @@ export class InputPort extends Port {
         super(PORT_TYPE.INPUT, node);
         this.allow = options.allow ?? [];
         this.many = options.many ?? true;
+    }
+
+    toJSON() {
+        return { ...super.toJSON(), allow: this.allow, many: this.many };
     }
 
     canConnect(outputPort) {
@@ -70,6 +78,10 @@ export class OutputPort extends Port {
     constructor(node, options={}) {
         super(PORT_TYPE.OUTPUT, node);
         this.many = options.many ?? true;
+    }
+
+    toJSON() {
+        return { ...super.toJSON(), many: this.many };
     }
 
     canConnect() {
