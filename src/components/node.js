@@ -87,9 +87,10 @@ export class Node {
         }
         const onDrag = (event) => {
             const endMousePos = instance.editor.calcOffsetPos({x: event.clientX, y: event.clientY});
+            const snap = instance.editor.snapToGrid;
             instance.wishPos = {
-                x: roundToStep((endMousePos.x - nodeOffset.x), GRID.SIZE),
-                y: roundToStep((endMousePos.y - nodeOffset.y), GRID.SIZE)
+                x: snap ? roundToStep((endMousePos.x - nodeOffset.x), GRID.SIZE) : endMousePos.x - nodeOffset.x,
+                y: snap ? roundToStep((endMousePos.y - nodeOffset.y), GRID.SIZE) : endMousePos.y - nodeOffset.y
             }
 
             if (!instance.animating) {

@@ -41,11 +41,12 @@ export class SelectionBounds {
             const currentPos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
             const dx = currentPos.x - startCanvasPos.x;
             const dy = currentPos.y - startCanvasPos.y;
+            const snap = this.editor.snapToGrid;
 
             for (const {node, x, y} of startPositions) {
                 node.wishPos = {
-                    x: roundToStep(x + dx, GRID.SIZE),
-                    y: roundToStep(y + dy, GRID.SIZE)
+                    x: snap ? roundToStep(x + dx, GRID.SIZE) : x + dx,
+                    y: snap ? roundToStep(y + dy, GRID.SIZE) : y + dy
                 };
                 if (!node.animating) {
                     node.animating = true;

@@ -20,6 +20,7 @@ export class Editor {
         this.selection = [];
         this._suppressNextClick = false;
         this._cursorPos = {x: 0, y: 0};
+        this.snapToGrid = true;
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
@@ -288,7 +289,12 @@ export class Editor {
         }
 
         return {
-            viewport: { scale: this.scale, tx: this.tx, ty: this.ty },
+            viewport: {
+                scale: this.scale,
+                snapping: this.snapToGrid,
+                tx: this.tx,
+                ty: this.ty
+            },
             nodes: this.nodes.map(node => node.toJSON()),
             connections
         };
