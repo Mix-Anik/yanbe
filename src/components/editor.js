@@ -3,6 +3,7 @@ import { PreviewConnection } from "./connection.js";
 import { ContextMenu } from "./menu.js";
 import { clamp } from "../helpers.js";
 import { GRID, PORT_TYPE } from '../constants.js';
+import { RectSelectTool, SelectionBounds } from "./selection.js";
 
 export class Editor {
     constructor(containerId) {
@@ -14,11 +15,10 @@ export class Editor {
         this.tx = 0;
         this.ty = 0;
 
-        this.nodeDragging = false;
+        this.isDragging = false;
         this.activePort = null;
-        this.previewConnection = new PreviewConnection(this);
-        this.contextMenu = new ContextMenu(this);
         this.selection = [];
+        this._suppressNextClick = false;
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
@@ -28,6 +28,12 @@ export class Editor {
         document.addEventListener('click', (e) => this.onActivePortClick(e));
         document.addEventListener('mousedown', (e) => this.onNodeHold(e));
         document.addEventListener('mousemove', (e) => this.onActivePortMove(e));
+
+        this.previewConnection = new PreviewConnection(this);
+        this.contextMenu = new ContextMenu(this);
+        this.selector = new RectSelectTool(this);
+
+        this.selectionBounds = new SelectionBounds(this);
     }
 
     addNode(node) {
@@ -69,7 +75,7 @@ export class Editor {
     }
 
     pan = (e) => {
-        if (e.target != this.element || this.nodeDragging) return;
+        if (e.button != 1 || e.target != this.element || this.isDragging) return;
 
         let startMousePos = {x: e.clientX, y: e.clientY};
 
@@ -126,6 +132,11 @@ export class Editor {
     }
 
     onClick(e) {
+        if (this._suppressNextClick) {
+            this._suppressNextClick = false;
+            return;
+        }
+
         this.clearSelection();
 
         if (e.target.classList.contains('node'))
@@ -142,8 +153,10 @@ export class Editor {
         if (!e.target.classList.contains('node')) return;
 
         const node = e.target.__ref;
+        if (!this.selection.includes(node))
+            this.clearSelection();
         this.addToSelection(node);
-        this.nodeDragging = true;
+        this.isDragging = true;
         Node.move(node, {x: e.clientX, y: e.clientY});
     }
 
@@ -168,12 +181,14 @@ export class Editor {
 
         obj.element.classList.add('active');
         this.selection.push(obj);
+        this.updateSelectionBounds();
     }
 
     removeFromSelection(obj) {
         obj.element.classList.remove('active');
         const idx = this.selection.indexOf(obj);
         this.selection.splice(idx, 1);
+        this.updateSelectionBounds();
     }
 
     clearSelection() {
@@ -184,5 +199,10 @@ export class Editor {
             obj.element.classList.remove('active');
 
         this.selection = [];
+        this.updateSelectionBounds();
+    }
+
+    updateSelectionBounds() {
+        this.selectionBounds.update(this.selection);
     }
 }

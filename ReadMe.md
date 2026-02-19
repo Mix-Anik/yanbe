@@ -1,5 +1,12 @@
 ## Yet Another Node-Based Editor
 
+<p align="center">
+  <a>
+    <img  src=".github/images/logo.png"
+      width="240" border="0" alt="Yanbe">
+  </a>
+</p>
+
 ### Features
 - Infinite grid with pan/zoom
 - Auto grid-snapping
