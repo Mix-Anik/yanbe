@@ -19,15 +19,18 @@ export class Editor {
         this.activePort = null;
         this.selection = [];
         this._suppressNextClick = false;
+        this._cursorPos = {x: 0, y: 0};
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
+        document.addEventListener('keydown', (e) => this.onKeyDown(e));
+        document.addEventListener('paste', (e) => this.onPaste(e));
         document.addEventListener('click', (e) => this.onClick(e));
         document.addEventListener('click', (e) => this.onConnectionClick(e));
         document.addEventListener('click', (e) => this.onPortClick(e));
         document.addEventListener('click', (e) => this.onActivePortClick(e));
         document.addEventListener('mousedown', (e) => this.onNodeHold(e));
-        document.addEventListener('mousemove', (e) => this.onActivePortMove(e));
+        document.addEventListener('mousemove', (e) => this.onMouseMove(e));
 
         this.previewConnection = new PreviewConnection(this);
         this.contextMenu = new ContextMenu(this);
@@ -143,9 +146,10 @@ export class Editor {
             this.addToSelection(e.target.__ref);
     }
 
-    onActivePortMove(e) {
-        if (!this.activePort) return;
+    onMouseMove(e) {
+        this._cursorPos = this.calcOffsetPos({x: e.clientX, y: e.clientY});
 
+        if (!this.activePort) return;
         this.previewConnection.update({x: e.clientX, y: e.clientY});
     }
 
@@ -204,6 +208,77 @@ export class Editor {
 
     updateSelectionBounds() {
         this.selectionBounds.update(this.selection);
+    }
+
+    onKeyDown(e) {
+        if (e.ctrlKey && e.key.toLowerCase() === 'c') this.copy();
+    }
+
+    copy() {
+        if (!this.selection.length) return;
+
+        const selectedSet = new Set(this.selection);
+        const connections = [];
+        for (const node of this.selection) {
+            node.ports.output.connections.forEach(conn => {
+                if (selectedSet.has(conn.to.node))
+                    connections.push(conn.toJSON());
+            });
+        }
+
+        const data = {
+            nodes: this.selection.map(node => node.toJSON()),
+            connections
+        };
+        navigator.clipboard.writeText(JSON.stringify(data));
+    }
+
+    onPaste(e) {
+        const text = e.clipboardData?.getData('text/plain');
+        if (!text) return;
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            return;
+        }
+
+        if (!data.nodes || !data.connections) return;
+
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const n of data.nodes) {
+            minX = Math.min(minX, n.x);
+            minY = Math.min(minY, n.y);
+            maxX = Math.max(maxX, n.x + 120);
+            maxY = Math.max(maxY, n.y + 60);
+        }
+        const dx = this._cursorPos.x - (minX + maxX) / 2;
+        const dy = this._cursorPos.y - (minY + maxY) / 2;
+
+        const idMap = new Map();
+        const newNodes = [];
+
+        for (const nodeData of data.nodes) {
+            const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
+                input: { allow: nodeData.ports.input.allow, many: nodeData.ports.input.many },
+                output: { many: nodeData.ports.output.many }
+            });
+            idMap.set(nodeData.id, node);
+            newNodes.push(node);
+            this.addNode(node);
+        }
+
+        for (const connData of data.connections) {
+            const fromNode = idMap.get(connData.from);
+            const toNode = idMap.get(connData.to);
+            if (fromNode && toNode)
+                fromNode.connect(toNode);
+        }
+
+        this.clearSelection();
+        for (const node of newNodes)
+            this.addToSelection(node);
     }
 
     toJSON() {

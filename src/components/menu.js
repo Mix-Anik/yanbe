@@ -21,6 +21,7 @@ export class ContextMenu {
         });
 
         document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) return;
             e.preventDefault();
             this.keysPressed.add(e.key);
 
