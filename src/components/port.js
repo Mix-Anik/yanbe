@@ -13,7 +13,7 @@ export class Port {
         this.element = document.createElement('div');
         this.element.classList.add('port', this.type);
         this.element.__ref = this;
-        this.node.element.appendChild(this.element);
+        this.node.headerElement.appendChild(this.element);
     }
 
     remove() {

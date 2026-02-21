@@ -9,9 +9,12 @@
 
 ### Features
 - Infinite grid with pan/zoom
-- Auto grid-snapping
+- Toggleable grid-snapping
 - Ultra-smooth feeling UI
 - Type-aware nodes
+- Zero dependencies
+- Framework agnostic
+- Modular node fields
 
 ### Examples
 You can check out various usage examples located in [`examples`](https://github.com/Mix-Anik/yanbe/tree/master/examples) folder

@@ -1,4 +1,5 @@
 import { Node } from "./node.js";
+import { Field } from "./field.js";
 import { PreviewConnection } from "./connection.js";
 import { ContextMenu } from "./menu.js";
 import { clamp } from "../helpers.js";
@@ -141,10 +142,12 @@ export class Editor {
             return;
         }
 
+        if (e.target.classList.contains('port') || e.target.classList.contains('connection')) return;
+
         this.clearSelection();
 
-        if (e.target.classList.contains('node'))
-            this.addToSelection(e.target.__ref);
+        const nodeEl = e.target.closest('.node');
+        if (nodeEl) this.addToSelection(nodeEl.__ref);
     }
 
     onMouseMove(e) {
@@ -155,9 +158,13 @@ export class Editor {
     }
 
     onNodeHold(e) {
-        if (!e.target.classList.contains('node')) return;
+        const header = e.target.closest('.node-header');
+        if (!header) return;
 
-        const node = e.target.__ref;
+        const nodeEl = header.closest('.node');
+        if (!nodeEl) return;
+
+        const node = nodeEl.__ref;
         if (!this.selection.includes(node))
             this.clearSelection();
         this.addToSelection(node);
@@ -261,13 +268,25 @@ export class Editor {
         const newNodes = [];
 
         for (const nodeData of data.nodes) {
+            const fields = (nodeData.fields ?? []).map(f => Field.fromJSON(f));
+
             const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
+                fields,
                 input: { allow: nodeData.ports.input.allow, many: nodeData.ports.input.many },
                 output: { many: nodeData.ports.output.many }
             });
             idMap.set(nodeData.id, node);
             newNodes.push(node);
             this.addNode(node);
+
+            // Restore live field values saved at copy time.
+            for (let i = 0; i < fields.length; i++) {
+                const saved = nodeData.fields[i];
+                if (saved.value !== undefined && fields[i].key) {
+                    fields[i].setValue(saved.value);
+                    node.data[fields[i].key] = saved.value;
+                }
+            }
         }
 
         for (const connData of data.connections) {

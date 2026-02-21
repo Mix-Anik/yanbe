@@ -32,13 +32,15 @@ src/
   styles.css          # All styles + CSS custom properties for theming
   components/
     editor.js         # Editor class — main orchestrator, owns event loop
-    node.js           # Node class — graph node with two ports
+    node.js           # Node class — graph node with ports + optional fields
     port.js           # Port, InputPort, OutputPort
     connection.js     # Connection (permanent), PreviewConnection (drag ghost)
     menu.js           # ContextMenu (right-click)
-    selection.js      # RectSelectTool (drag-to-select)
+    selection.js      # RectSelectTool (drag-to-select), SelectionBounds
+    field.js          # Field base class + type registry
+    fields/           # Built-in field types (auto-registered on import)
 
-examples/             # Usage examples (basic, embedding, types)
+examples/             # Usage examples (basic, embedding, types, fields)
 testing/              # Local dev test page (gitignored, not committed)
 dist/                 # Build output (yanbe.js ESM, yanbe.umd.cjs, yanbe.css)
 ```
@@ -49,7 +51,9 @@ dist/                 # Build output (yanbe.js ESM, yanbe.umd.cjs, yanbe.css)
 
 ```js
 import { Editor, Node, InputPort, OutputPort,
-         Port, Connection, PreviewConnection, ContextMenu } from 'yanbe';
+         Port, Connection, PreviewConnection, ContextMenu,
+         Field, TextField, IntegerField, DecimalField,
+         CheckboxField, SelectField, ButtonField } from 'yanbe';
 ```
 
 Typical usage:
@@ -91,12 +95,35 @@ Represents one graph node. Always has exactly one `InputPort` and one `OutputPor
 
 ```js
 new Node(type, x, y, options)
-// options = { input: { allow: [], many: true }, output: { many: true } }
+// options = {
+//   input:  { allow: [], many: true },
+//   output: { many: true },
+//   fields: [ new IntegerField({...}), ... ]   // optional
+// }
 ```
+
+**DOM structure** (created in `create(editor)`):
+```
+<div class="node">          ← this.element, __ref = node, drag target = header only
+  <div class="node-header"> ← this.headerElement, cursor: move, port anchor
+    <span class="node-title">type</span>
+    <div class="port input"></div>
+    <div class="port output"></div>
+  </div>
+  <div class="node-body">   ← this.bodyElement, fields rendered here
+    <div class="field-row">…</div>
+  </div>
+</div>
+```
+
+| Property | Notes |
+|---|---|
+| `node.fields` | Array of `Field` instances passed via options |
+| `node.data` | Plain object, keyed by `field.key`, auto-synced on user input |
 
 | Method | Notes |
 |---|---|
-| `create(editor)` | Called by `editor.addNode()` — builds DOM, creates ports |
+| `create(editor)` | Called by `editor.addNode()` — builds DOM, renders fields, creates ports |
 | `connect(node)` | Creates a Connection from this node's output to `node`'s input |
 | `disconnect(node)` | Removes that connection |
 | `remove()` | Removes node from editor.nodes, removes ports & element |
@@ -104,6 +131,8 @@ new Node(type, x, y, options)
 | `static move(instance, startPos)` | Smooth animated drag using rAF + lerp |
 
 `Node.move()` is static. It sets `instance.wishPos` on each `mousemove` and interpolates `instance.x/y` toward it via `requestAnimationFrame`.
+
+**`toJSON()` output** now includes `data` (live field values) and `fields` (field definitions including `value` key for paste restoration). `editor.snapToGrid` (default `true`) can be toggled at runtime to disable 20px grid snapping.
 
 ### `Port / InputPort / OutputPort` (`src/components/port.js`)
 Ports are connection endpoints on a node.
@@ -147,6 +176,64 @@ this.buttons.push({
 ### `RectSelectTool` (`src/components/selection.js`)
 Drag-to-select on left-click. Creates a `.selection` div overlay, then on `mouseup` checks which nodes are fully inside using `getBoundingClientRect()`. Only activates when `editor.isDragging` is false.
 
+### `SelectionBounds` (`src/components/selection.js`)
+Renders a dashed bounding rectangle around all selected nodes when `selection.length > 1`. Supports group drag from the bounds element itself (uses the same lerp animation as single-node drag).
+
+### `Field` (`src/components/field.js`) + built-in types (`src/components/fields.js`)
+Abstract base class for node field types. Each subclass implements `render(onChange)`, `getValue()`, `setValue(value)`, and `toJSON()`.
+
+**Base class API:**
+```js
+Field.register(MyFieldClass)         // register for fromJSON() reconstruction
+Field.fromJSON(savedData)            // → new instance from serialized definition
+field._createRow()                   // helper: <div class="field-row"> + <label>
+```
+
+**Constructor options (shared by all fields):**
+- `label: string` — display label (also auto-generates `key` if not given)
+- `key: string` — property name on `node.data` (defaults to label lowercased/underscored)
+- `inline: boolean` — `true` (default) = label + control side-by-side; `false` = label above
+
+**Built-in types:**
+
+| Class | `type` string | Notes |
+|---|---|---|
+| `TextField` | `'text'` | options: `placeholder`, `maxlength` |
+| `IntegerField` | `'integer'` | options: `min`, `max` |
+| `DecimalField` | `'decimal'` | options: `min`, `max`, `step` |
+| `CheckboxField` | `'checkbox'` | value is `true`/`false` |
+| `SelectField` | `'select'` | requires `options: string[]` |
+| `ButtonField` | `'button'` | `onClick(node)` callback; no serialized value |
+
+All built-in types are auto-registered when `fields.js` is imported (which `lib.js` does).
+
+**Custom field type template:**
+```js
+class MyField extends Field {
+    static type = 'my-field';   // unique string for JSON round-trips
+
+    constructor(options = {}) {
+        super(options);
+        this.default = options.default ?? options.value ?? <defaultValue>;
+    }
+
+    render(onChange) {
+        const row = this._createRow();
+        // build DOM, wire onChange, store input ref on this._inp
+        this._inp.addEventListener('mousedown', e => e.stopPropagation());
+        return row;
+    }
+
+    getValue()      { return this._inp.value; }
+    setValue(value) { this._inp.value = value; }
+    toJSON()        { return { ...super.toJSON(), default: this.default }; }
+}
+
+Field.register(MyField);
+```
+
+**Important:** always call `e.stopPropagation()` on `mousedown` of any interactive element inside `render()` to prevent focus-related issues with the editor.
+
 ---
 
 ## Critical Code Conventions
@@ -163,10 +250,17 @@ const connection = e.target.__ref;  // in onConnectionClick
 Always set `__ref` when creating a new element that needs to be clickable.
 
 ### CSS class-based dispatch
-Event handlers identify element types via CSS classes, not `instanceof`:
+Event handlers identify element types via CSS classes plus `closest()` traversal:
 
 ```js
-if (e.target.classList.contains('node')) { /* ... */ }
+// Node drag: only from the header
+const header = e.target.closest('.node-header');
+const nodeEl = header?.closest('.node');
+
+// Node selection: anywhere on the node
+const nodeEl = e.target.closest('.node');
+
+// Port / connection: direct class check (they are leaf elements)
 if (e.target.classList.contains('port')) { /* ... */ }
 if (e.target.classList.contains('connection')) { /* ... */ }
 ```
@@ -200,9 +294,27 @@ All visual configuration is via CSS custom properties on `:root`:
 | `--p-bg` | `white` | Port circle fill |
 | `--ctx-menu-bg` | `#145d64aa` | Context menu background |
 
-Node size is fixed at `120×60px` in CSS. Port circles are `14×14px`.
+Node width is `140px`; height is `auto` (grows with fields). The header is fixed at `36px`. Port circles are `14×14px` (input = circle, output = rotated square/diamond).
 
-CSS classes used by components: `.node`, `.port`, `.input`, `.output`, `.connection`, `.preview-connection`, `.ctx-menu`, `.ctx-menu-btn`, `.selection`, `.active` (selected node), `.disabled` (non-connectable node).
+CSS classes used by components:
+
+| Class | Element |
+|---|---|
+| `.node` | Outer node wrapper |
+| `.node-header` | Drag handle + port anchor |
+| `.node-title` | Type label inside header |
+| `.node-body` | Field container (hidden when empty) |
+| `.field-row` | Inline label+control row |
+| `.field-row--block` | Block label-above-control row |
+| `.field-button` | Button field element |
+| `.port` | Port div (also `.input` or `.output`) |
+| `.active` | Selected node |
+| `.disabled` | Non-connectable node (dimmed) |
+| `.connection` | SVG path for a permanent wire |
+| `.preview-connection` | SVG path for the drag ghost wire |
+| `.selection` | Rect-select overlay div |
+| `.selection-bounds` | Multi-select bounding rectangle |
+| `.ctx-menu`, `.ctx-menu-btn` | Context menu |
 
 ---
 
@@ -241,3 +353,8 @@ Always import from `constants.js` — never hardcode these values.
 - **The viewport transform order matters** — always `translate(tx, ty) scale(s)`, not the reverse.
 - **ContextMenu creates a new DOM element on every `show()` call** — do not cache `this.element` across show/hide cycles; the old one is destroyed in `hide()`.
 - **`RectSelectTool` attaches to `document` mousedown**, so it fires even on node clicks. It is guarded by `editor.isDragging` which `Editor.onNodeHold()` sets to `true` before `Node.move()`.
+- **Node drag only fires from `.node-header`** — `Editor.onNodeHold()` uses `e.target.closest('.node-header')`. Clicks on the body or fields will NOT drag the node.
+- **Field `render()` must stop mousedown propagation on interactive elements** — call `inp.addEventListener('mousedown', e => e.stopPropagation())` on any `<input>`, `<select>`, or `<button>` inside `render()`.
+- **Custom field types must call `Field.register(MyField)`** before any paste operation that would reconstruct them — otherwise `Field.fromJSON()` will throw.
+- **`ButtonField.onClick` is not serialized** — on paste, the button renders but is inert. If onClick matters post-paste, use a node type registry pattern instead.
+- **`node.data` is initialized from `field.default`, not `field.getValue()`** — the DOM hasn't been created yet at construction time. After `editor.addNode()` (which calls `create()`), `node.data` is updated from the rendered elements.

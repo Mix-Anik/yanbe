@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fields</title>
+  <link rel="stylesheet" href="yanbe.css">
+</head>
+<body>
+  <div id="editor">
+    <div id="viewport">
+      <svg id="connections"></svg>
+    </div>
+  </div>
+  <script type="module">
+    import {
+      Editor, Node, Field,
+      TextField, IntegerField, DecimalField,
+      CheckboxField, SelectField, ButtonField
+    } from "yanbe";
+
+    // ── Custom field type ──────────────────────────────────────────────────
+    // Implement three methods: render(onChange), getValue(), setValue(value).
+    // Call Field.register() so it survives copy-paste serialization.
+    class ColorField extends Field {
+      static type = 'color';
+
+      constructor(options = {}) {
+        super(options);
+        this.default = options.default ?? '#3399ff';
+      }
+
+      render(onChange) {
+        const row = this._createRow();          // <div class="field-row"> + <label>
+        const inp = document.createElement('input');
+        inp.type = 'color';
+        inp.value = this.default;
+        inp.addEventListener('input', () => onChange(inp.value));
+        inp.addEventListener('mousedown', e => e.stopPropagation());
+        this._inp = inp;
+        row.appendChild(inp);
+        return row;
+      }
+
+      getValue()      { return this._inp.value; }
+      setValue(value) { this._inp.value = value; }
+      toJSON()        { return { ...super.toJSON(), default: this.default }; }
+    }
+
+    Field.register(ColorField);
+
+    // ── Editor setup ───────────────────────────────────────────────────────
+    const editor = new Editor('editor');
+
+    // Node with all built-in field types
+    const source = new Node('Color Correct', 100, 80, {
+      fields: [
+        new DecimalField({ label: 'Brightness', default: 1.0, min: 0, max: 2, step: 0.01 }),
+        new DecimalField({ label: 'Contrast',   default: 1.0, min: 0, max: 2, step: 0.01 }),
+        new SelectField({
+          label: 'Colorspace',
+          options: ['sRGB', 'Linear', 'ACEScg'],
+          default: 'sRGB'
+        }),
+        new CheckboxField({ label: 'Clamp output', default: false }),
+        new ButtonField({
+          label: 'Reset to defaults',
+          onClick: (node) => {
+            node.fields[0].setValue(1.0);  node.data.brightness = 1.0;
+            node.fields[1].setValue(1.0);  node.data.contrast   = 1.0;
+          }
+        }),
+      ]
+    });
+
+    // Node demonstrating custom field + text/integer fields
+    const process = new Node('Blur', 400, 80, {
+      fields: [
+        new IntegerField({ label: 'Samples', default: 8, min: 1, max: 64 }),
+        new DecimalField({ label: 'Radius',  default: 2.5, min: 0, max: 20, step: 0.5 }),
+        new ColorField({ label: 'Tint', default: '#ffffff' }),
+        new TextField({ label: 'Tag', default: 'blur_01', placeholder: 'identifier' }),
+      ],
+      input: { allow: ['Color Correct'] }
+    });
+
+    editor.addNode(source);
+    editor.addNode(process);
+    source.connect(process);
+
+    // Read field values via node.data
+    console.log('source.data:', source.data);
+    console.log('process.data:', process.data);
+  </script>
+</body>
+</html>

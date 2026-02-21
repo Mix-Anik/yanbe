@@ -11,8 +11,18 @@ export class Node {
         this.y = y;
         this.type = type;
         this.element = null;
+        this.headerElement = null;
+        this.bodyElement = null;
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
+        this.fields = options.fields ?? [];
+        this.data = {};
+        for (const field of this.fields) {
+            if (field.key)
+                this.data[field.key] = field.getValue !== undefined
+                    ? (typeof field.default !== 'undefined' ? field.default : undefined)
+                    : undefined;
+        }
         this.ports = {
             input: new InputPort(this, options.input ?? {}),
             output: new OutputPort(this, options.output ?? {})
@@ -21,12 +31,41 @@ export class Node {
 
     create(editor) {
         this.editor = editor;
+
         this.element = document.createElement('div');
         this.element.className = 'node';
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
-        this.element.textContent = this.type;
         this.element.__ref = this;
+
+        // Header — drag handle and port anchor
+        this.headerElement = document.createElement('div');
+        this.headerElement.className = 'node-header';
+        const title = document.createElement('span');
+        title.className = 'node-title';
+        title.textContent = this.type;
+        this.headerElement.appendChild(title);
+        this.element.appendChild(this.headerElement);
+
+        // Body — fields
+        this.bodyElement = document.createElement('div');
+        this.bodyElement.className = 'node-body';
+        this.element.appendChild(this.bodyElement);
+
+        for (const field of this.fields) {
+            const onChange = (value) => {
+                if (field.key) this.data[field.key] = value;
+            };
+            // Link button fields back to this node instance for onClick
+            if (field._onClick !== undefined) field._node = this;
+            const el = field.render(onChange);
+            this.bodyElement.appendChild(el);
+            // Initialize data from rendered element
+            if (field.key && field.getValue) {
+                this.data[field.key] = field.getValue();
+            }
+        }
+
         this.editor.viewport.appendChild(this.element);
         this.ports.input.create();
         this.ports.output.create();
@@ -57,11 +96,19 @@ export class Node {
     }
 
     toJSON() {
+        const fields = this.fields.map(f => {
+            const def = f.toJSON();
+            if (f.key && f.getValue) def.value = f.getValue();
+            return def;
+        });
+
         return {
             id: this.id,
             type: this.type,
             x: Math.round(this.x),
             y: Math.round(this.y),
+            data: { ...this.data },
+            fields,
             ports: {
                 input: this.ports.input.toJSON(),
                 output: this.ports.output.toJSON()
@@ -98,7 +145,7 @@ export class Node {
                 requestAnimationFrame(animate);
             }
         }
-        
+
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', () => {
             document.removeEventListener('mousemove', onDrag);

@@ -38,16 +38,107 @@ body {
 
 .node {
     position: absolute;
-    width: 120px;
-    height: 60px;
+    width: 140px;
+    min-height: 36px;
     background: var(--n-bg);
     border: 2px solid var(--n-border);
     border-radius: 8px;
     color: var(--n-text);
-    text-align: center;
-    line-height: 60px;
     user-select: none;
+    cursor: default;
+}
+
+.node-header {
+    position: relative;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    border-bottom: 2px solid var(--n-border);
+}
+
+.node:not(:has(.node-body .field-row)) .node-header {
+    border-bottom: none;
+}
+
+.node-title {
+    font-size: 13px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.node-body {
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.node-body:empty {
+    display: none;
+}
+
+.field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 12px;
+}
+
+.field-row--block {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.field-row label {
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.field-row input[type="text"],
+.field-row input[type="number"] {
+    width: 60px;
+    background: #ffffff18;
+    border: 1px solid #aaa6;
+    border-radius: 3px;
+    color: var(--n-text);
+    font-size: 12px;
+    padding: 1px 4px;
+    min-width: 0;
+}
+
+.field-row input[type="checkbox"] {
+    accent-color: var(--accent);
     cursor: pointer;
+}
+
+.field-row select {
+    background: #ffffff18;
+    border: 1px solid #aaa6;
+    border-radius: 3px;
+    color: var(--n-text);
+    font-size: 12px;
+    padding: 1px 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.field-button {
+    width: 100%;
+    background: #ffffff14;
+    border: 1px solid #aaa6;
+    border-radius: 3px;
+    color: var(--n-text);
+    font-size: 12px;
+    padding: 3px 6px;
+    cursor: pointer;
+}
+
+.field-button:hover {
+    background: var(--accent);
+    color: black;
 }
 
 .node.disabled {
