@@ -8,24 +8,28 @@ export class TextField extends Field {
         this.default     = options.default     ?? options.value ?? '';
         this.placeholder = options.placeholder ?? '';
         this.maxlength   = options.maxlength   ?? null;
+        this.element = null;
     }
 
-    render(onChange) {
+    create() {
         const row = this._createRow();
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.value = this.default;
-        if (this.placeholder) inp.placeholder = this.placeholder;
-        if (this.maxlength !== null) inp.maxLength = this.maxlength;
-        inp.addEventListener('input', () => onChange(inp.value));
-        inp.addEventListener('mousedown', e => e.stopPropagation());
-        this._inp = inp;
-        row.appendChild(inp);
+        this.element = document.createElement('input');
+        this.element.type = 'text';
+        this.element.value = this.default;
+        if (this.placeholder) this.element.placeholder = this.placeholder;
+        if (this.maxlength !== null) this.element.maxLength = this.maxlength;
+        this.element.addEventListener('mousedown', e => e.stopPropagation());
+        row.appendChild(this.element);
         return row;
     }
 
-    getValue()      { return this._inp.value; }
-    setValue(value) { this._inp.value = value; }
+    getValue() {
+        return this.element.value;
+    }
+
+    setValue(value) {
+        this.element.value = value;
+    }
 
     toJSON() {
         const base = super.toJSON();

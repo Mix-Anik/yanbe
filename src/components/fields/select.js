@@ -7,27 +7,31 @@ export class SelectField extends Field {
         super(options);
         this.options = options.options ?? [];
         this.default = options.default ?? options.value ?? (this.options[0] ?? '');
+        this.element = null;
     }
 
-    render(onChange) {
+    create() {
         const row = this._createRow();
-        const sel = document.createElement('select');
+        this.element = document.createElement('select');
         for (const opt of this.options) {
-            const el = document.createElement('option');
-            el.value = opt;
-            el.textContent = opt;
-            sel.appendChild(el);
+            const optEl = document.createElement('option');
+            optEl.value = opt;
+            optEl.textContent = opt;
+            this.element.appendChild(optEl);
         }
-        sel.value = this.default;
-        sel.addEventListener('change', () => onChange(sel.value));
-        sel.addEventListener('mousedown', e => e.stopPropagation());
-        this._sel = sel;
-        row.appendChild(sel);
+        this.element.value = this.default;
+        this.element.addEventListener('mousedown', e => e.stopPropagation());
+        row.appendChild(this.element);
         return row;
     }
 
-    getValue()      { return this._sel.value; }
-    setValue(value) { this._sel.value = value; }
+    getValue() {
+        return this.element.value;
+    }
+
+    setValue(value) {
+        this.element.value = value;
+    }
 
     toJSON() {
         return { ...super.toJSON(), options: this.options, default: this.default };

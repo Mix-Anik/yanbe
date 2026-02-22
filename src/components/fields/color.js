@@ -1,30 +1,30 @@
 import { Field } from '../field.js';
 
-export class CheckboxField extends Field {
-    static type = 'checkbox';
+export class ColorField extends Field {
+    static type = 'color';
 
     constructor(options = {}) {
         super(options);
-        this.default = options.default ?? options.value ?? false;
+        this.default = options.default ?? '#ffffffff';
         this.element = null;
     }
 
     create() {
         const row = this._createRow();
         this.element = document.createElement('input');
-        this.element.type = 'checkbox';
-        this.element.checked = this.default;
+        this.element.type = 'color';
+        this.element.value = this.default;
         this.element.addEventListener('mousedown', e => e.stopPropagation());
         row.appendChild(this.element);
         return row;
     }
 
     getValue() {
-        return this.element.checked;
+        return this.element.value;
     }
 
     setValue(value) {
-        this.element.checked = value;
+        this.element.value = value;
     }
 
     toJSON() {
@@ -32,4 +32,4 @@ export class CheckboxField extends Field {
     }
 }
 
-Field.register(CheckboxField);
+Field.register(ColorField);

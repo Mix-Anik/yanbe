@@ -16,13 +16,6 @@ export class Node {
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
         this.fields = options.fields ?? [];
-        this.data = {};
-        for (const field of this.fields) {
-            if (field.key)
-                this.data[field.key] = field.getValue !== undefined
-                    ? (typeof field.default !== 'undefined' ? field.default : undefined)
-                    : undefined;
-        }
         this.ports = {
             input: new InputPort(this, options.input ?? {}),
             output: new OutputPort(this, options.output ?? {})
@@ -53,17 +46,9 @@ export class Node {
         this.element.appendChild(this.bodyElement);
 
         for (const field of this.fields) {
-            const onChange = (value) => {
-                if (field.key) this.data[field.key] = value;
-            };
-            // Link button fields back to this node instance for onClick
-            if (field._onClick !== undefined) field._node = this;
-            const el = field.render(onChange);
-            this.bodyElement.appendChild(el);
-            // Initialize data from rendered element
-            if (field.key && field.getValue) {
-                this.data[field.key] = field.getValue();
-            }
+            if (field._onClick !== undefined)
+                field._node = this;
+            this.bodyElement.appendChild(field.create());
         }
 
         this.editor.viewport.appendChild(this.element);
@@ -107,7 +92,6 @@ export class Node {
             type: this.type,
             x: Math.round(this.x),
             y: Math.round(this.y),
-            data: { ...this.data },
             fields,
             ports: {
                 input: this.ports.input.toJSON(),

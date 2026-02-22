@@ -119,7 +119,6 @@ new Node(type, x, y, options)
 | Property | Notes |
 |---|---|
 | `node.fields` | Array of `Field` instances passed via options |
-| `node.data` | Plain object, keyed by `field.key`, auto-synced on user input |
 
 | Method | Notes |
 |---|---|
@@ -132,7 +131,7 @@ new Node(type, x, y, options)
 
 `Node.move()` is static. It sets `instance.wishPos` on each `mousemove` and interpolates `instance.x/y` toward it via `requestAnimationFrame`.
 
-**`toJSON()` output** now includes `data` (live field values) and `fields` (field definitions including `value` key for paste restoration). `editor.snapToGrid` (default `true`) can be toggled at runtime to disable 20px grid snapping.
+**`toJSON()` output** includes `fields` (field definitions plus a `value` key for paste restoration). `editor.snapToGrid` (default `true`) can be toggled at runtime to disable 20px grid snapping.
 
 ### `Port / InputPort / OutputPort` (`src/components/port.js`)
 Ports are connection endpoints on a node.
@@ -180,7 +179,7 @@ Drag-to-select on left-click. Creates a `.selection` div overlay, then on `mouse
 Renders a dashed bounding rectangle around all selected nodes when `selection.length > 1`. Supports group drag from the bounds element itself (uses the same lerp animation as single-node drag).
 
 ### `Field` (`src/components/field.js`) + built-in types (`src/components/fields.js`)
-Abstract base class for node field types. Each subclass implements `render(onChange)`, `getValue()`, `setValue(value)`, and `toJSON()`.
+Abstract base class for node field types. Each subclass implements `create()`, `getValue()`, `setValue(value)`, and `toJSON()`.
 
 **Base class API:**
 ```js
@@ -191,7 +190,7 @@ field._createRow()                   // helper: <div class="field-row"> + <label
 
 **Constructor options (shared by all fields):**
 - `label: string` — display label (also auto-generates `key` if not given)
-- `key: string` — property name on `node.data` (defaults to label lowercased/underscored)
+- `key: string` — identifier used in `toJSON()` output (defaults to label lowercased/underscored)
 - `inline: boolean` — `true` (default) = label + control side-by-side; `false` = label above
 
 **Built-in types:**
@@ -217,22 +216,22 @@ class MyField extends Field {
         this.default = options.default ?? options.value ?? <defaultValue>;
     }
 
-    render(onChange) {
+    create() {
         const row = this._createRow();
-        // build DOM, wire onChange, store input ref on this._inp
-        this._inp.addEventListener('mousedown', e => e.stopPropagation());
+        // build DOM, store input ref on this.element
+        this.element.addEventListener('mousedown', e => e.stopPropagation());
         return row;
     }
 
-    getValue()      { return this._inp.value; }
-    setValue(value) { this._inp.value = value; }
+    getValue()      { return this.element.value; }
+    setValue(value) { this.element.value = value; }
     toJSON()        { return { ...super.toJSON(), default: this.default }; }
 }
 
 Field.register(MyField);
 ```
 
-**Important:** always call `e.stopPropagation()` on `mousedown` of any interactive element inside `render()` to prevent focus-related issues with the editor.
+**Important:** always call `e.stopPropagation()` on `mousedown` of any interactive element inside `create()` to prevent focus-related issues with the editor.
 
 ---
 
@@ -354,7 +353,7 @@ Always import from `constants.js` — never hardcode these values.
 - **ContextMenu creates a new DOM element on every `show()` call** — do not cache `this.element` across show/hide cycles; the old one is destroyed in `hide()`.
 - **`RectSelectTool` attaches to `document` mousedown**, so it fires even on node clicks. It is guarded by `editor.isDragging` which `Editor.onNodeHold()` sets to `true` before `Node.move()`.
 - **Node drag only fires from `.node-header`** — `Editor.onNodeHold()` uses `e.target.closest('.node-header')`. Clicks on the body or fields will NOT drag the node.
-- **Field `render()` must stop mousedown propagation on interactive elements** — call `inp.addEventListener('mousedown', e => e.stopPropagation())` on any `<input>`, `<select>`, or `<button>` inside `render()`.
+- **Field `create()` must stop mousedown propagation on interactive elements** — call `inp.addEventListener('mousedown', e => e.stopPropagation())` on any `<input>`, `<select>`, or `<button>` inside `create()`.
 - **Custom field types must call `Field.register(MyField)`** before any paste operation that would reconstruct them — otherwise `Field.fromJSON()` will throw.
 - **`ButtonField.onClick` is not serialized** — on paste, the button renders but is inert. If onClick matters post-paste, use a node type registry pattern instead.
-- **`node.data` is initialized from `field.default`, not `field.getValue()`** — the DOM hasn't been created yet at construction time. After `editor.addNode()` (which calls `create()`), `node.data` is updated from the rendered elements.
+- **Read field values via `node.fields`** — call `field.getValue()` on a field instance, or use `node.fields.find(f => f.key === 'my_key')?.getValue()` for key-based lookup. There is no `node.data` shorthand.

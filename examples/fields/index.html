@@ -19,7 +19,7 @@
     } from "yanbe";
 
     // ── Custom field type ──────────────────────────────────────────────────
-    // Implement three methods: render(onChange), getValue(), setValue(value).
+    // Implement three methods: create(), getValue(), setValue(value).
     // Call Field.register() so it survives copy-paste serialization.
     class ColorField extends Field {
       static type = 'color';
@@ -29,20 +29,19 @@
         this.default = options.default ?? '#3399ff';
       }
 
-      render(onChange) {
+      create() {
         const row = this._createRow();          // <div class="field-row"> + <label>
         const inp = document.createElement('input');
         inp.type = 'color';
         inp.value = this.default;
-        inp.addEventListener('input', () => onChange(inp.value));
         inp.addEventListener('mousedown', e => e.stopPropagation());
-        this._inp = inp;
+        this.element = inp;
         row.appendChild(inp);
         return row;
       }
 
-      getValue()      { return this._inp.value; }
-      setValue(value) { this._inp.value = value; }
+      getValue()      { return this.element.value; }
+      setValue(value) { this.element.value = value; }
       toJSON()        { return { ...super.toJSON(), default: this.default }; }
     }
 
@@ -65,8 +64,8 @@
         new ButtonField({
           label: 'Reset to defaults',
           onClick: (node) => {
-            node.fields[0].setValue(1.0);  node.data.brightness = 1.0;
-            node.fields[1].setValue(1.0);  node.data.contrast   = 1.0;
+            node.fields[0].setValue(1.0);
+            node.fields[1].setValue(1.0);
           }
         }),
       ]
@@ -87,9 +86,9 @@
     editor.addNode(process);
     source.connect(process);
 
-    // Read field values via node.data
-    console.log('source.data:', source.data);
-    console.log('process.data:', process.data);
+    // Read field values via node.fields[i].getValue() or find by key
+    console.log('brightness:', source.fields[0].getValue());
+    console.log('tint:', process.fields.find(f => f.key === 'tint')?.getValue());
   </script>
 </body>
 </html>

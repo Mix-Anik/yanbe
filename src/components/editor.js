@@ -282,10 +282,8 @@ export class Editor {
             // Restore live field values saved at copy time.
             for (let i = 0; i < fields.length; i++) {
                 const saved = nodeData.fields[i];
-                if (saved.value !== undefined && fields[i].key) {
+                if (saved.value !== undefined)
                     fields[i].setValue(saved.value);
-                    node.data[fields[i].key] = saved.value;
-                }
             }
         }
 

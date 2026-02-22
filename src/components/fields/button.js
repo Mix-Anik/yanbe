@@ -6,22 +6,26 @@ export class ButtonField extends Field {
     constructor(options = {}) {
         super(options);
         this._onClick = options.onClick ?? null;
+        this.element = null;
     }
 
-    render(_onChange) {
-        const btn = document.createElement('button');
-        btn.textContent = this.label;
-        btn.className = 'field-button';
+    create() {
+        this.element = document.createElement('button');
+        this.element.textContent = this.label;
+        this.element.className = 'field-button';
         if (this._onClick) {
-            btn.addEventListener('click', () => this._onClick(this._node));
+            this.element.addEventListener('click', () => this._onClick(this._node));
         }
-        btn.addEventListener('mousedown', e => e.stopPropagation());
-        return btn;
+        this.element.addEventListener('mousedown', e => e.stopPropagation());
+        return this.element;
     }
 
     // Buttons carry no serializable value.
-    getValue()      { return undefined; }
-    setValue()      {}
+    getValue() {
+        return undefined;
+    }
+
+    setValue() {}
 
     toJSON() {
         // onClick is a function and cannot be serialized.

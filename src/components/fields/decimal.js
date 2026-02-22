@@ -9,25 +9,29 @@ export class DecimalField extends Field {
         this.min     = options.min     ?? null;
         this.max     = options.max     ?? null;
         this.step    = options.step    ?? 'any';
+        this.element = null;
     }
 
-    render(onChange) {
+    create() {
         const row = this._createRow();
-        const inp = document.createElement('input');
-        inp.type = 'number';
-        inp.step = this.step;
-        inp.value = this.default;
-        if (this.min !== null) inp.min = this.min;
-        if (this.max !== null) inp.max = this.max;
-        inp.addEventListener('input', () => onChange(Number(inp.value)));
-        inp.addEventListener('mousedown', e => e.stopPropagation());
-        this._inp = inp;
-        row.appendChild(inp);
+        this.element = document.createElement('input');
+        this.element.type = 'number';
+        this.element.step = this.step;
+        this.element.value = this.default;
+        if (this.min !== null) this.element.min = this.min;
+        if (this.max !== null) this.element.max = this.max;
+        this.element.addEventListener('mousedown', e => e.stopPropagation());
+        row.appendChild(this.element);
         return row;
     }
 
-    getValue()      { return Number(this._inp.value); }
-    setValue(value) { this._inp.value = value; }
+    getValue() {
+        return Number(this.element.value);
+    }
+
+    setValue(value) {
+        this.element.value = value;
+    }
 
     toJSON() {
         const base = super.toJSON();

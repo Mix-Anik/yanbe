@@ -68,77 +68,125 @@ body {
     pointer-events: none;
 }
 
+/* Node body: flex-wrap so inline fields (flex:1) share rows naturally,
+   full-width fields force a new row via width:100%. */
 .node-body {
-    padding: 4px 6px;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-wrap: wrap;
+    gap: 5px 6px;
+    padding: 6px 8px;
+    align-items: center;
 }
 
 .node-body:empty {
     display: none;
 }
 
+/* Non-inline field: full-width 2-col grid keeps label/input aligned across rows. */
 .field-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-    justify-content: space-between;
     gap: 6px;
+    width: 100%;
     font-size: 12px;
-}
-
-.field-row--block {
-    flex-direction: column;
-    align-items: stretch;
 }
 
 .field-row label {
-    flex-shrink: 0;
-    opacity: 0.8;
+    font-size: 12px;
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* Inline field: compact stack, flex:1 lets adjacent inline fields share a row. */
+.field-row--inline {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 40px;
+    width: auto;
+    font-size: 12px;
+}
+
+.field-row--inline label {
+    font-size: 11px;
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Shared input/select styles */
 .field-row input[type="text"],
-.field-row input[type="number"] {
-    width: 60px;
-    background: #ffffff18;
-    border: 1px solid #aaa6;
+.field-row input[type="number"],
+.field-row--inline input[type="text"],
+.field-row--inline input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff12;
+    border: 1px solid #ffffff20;
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
-    padding: 1px 4px;
+    padding: 2px 5px;
     min-width: 0;
 }
 
-.field-row input[type="checkbox"] {
+.field-row input[type="text"]:focus,
+.field-row input[type="number"]:focus,
+.field-row--inline input[type="text"]:focus,
+.field-row--inline input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.field-row input[type="checkbox"],
+.field-row--inline input[type="checkbox"] {
     accent-color: var(--accent);
     cursor: pointer;
 }
 
-.field-row select {
-    background: #ffffff18;
-    border: 1px solid #aaa6;
+.field-row select,
+.field-row--inline select {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff12;
+    border: 1px solid #ffffff20;
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
-    padding: 1px 2px;
-    flex: 1;
+    padding: 2px 3px;
     min-width: 0;
+}
+
+.field-row select:focus,
+.field-row--inline select:focus {
+    outline: none;
+    border-color: var(--accent);
 }
 
 .field-button {
     width: 100%;
-    background: #ffffff14;
-    border: 1px solid #aaa6;
+    box-sizing: border-box;
+    background: transparent;
+    border: 1px solid #ffffff20;
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
     padding: 3px 6px;
     cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.1s, background 0.1s, color 0.1s;
 }
 
 .field-button:hover {
     background: var(--accent);
+    border-color: var(--accent);
     color: black;
+    opacity: 1;
 }
 
 .node.disabled {
@@ -243,16 +291,36 @@ svg {
 }
 
 .selection {
-  position: absolute;
-  border: 1px dashed var(--accent);
-  background-color: #d4a0170f;
-  display: block;
-  pointer-events: none;
+    position: absolute;
+    border: 1px dashed var(--accent);
+    background-color: #d4a0170f;
+    display: block;
+    pointer-events: none;
 }
 
 .selection-bounds {
-  position: absolute;
-  border: 1px dashed var(--accent);
-  pointer-events: all;
-  cursor: move;
+    position: absolute;
+    border: 1px dashed var(--accent);
+    pointer-events: all;
+    cursor: move;
+}
+
+input[type="color"] {
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    inline-size: auto;
+    background-color: transparent;
+}
+
+input[type="color"]::-moz-color-swatch {
+    border: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+    border: none;
 }
