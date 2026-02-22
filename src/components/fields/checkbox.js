@@ -6,17 +6,14 @@ export class CheckboxField extends Field {
     constructor(options = {}) {
         super(options);
         this.default = options.default ?? options.value ?? false;
-        this.element = null;
     }
 
-    create() {
-        const row = this._createRow();
-        this.element = document.createElement('input');
-        this.element.type = 'checkbox';
-        this.element.checked = this.default;
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        row.appendChild(this.element);
-        return row;
+    _createElement() {
+        const el = document.createElement('input');
+        el.type = 'checkbox';
+        el.checked = this.default;
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        return el;
     }
 
     getValue() {

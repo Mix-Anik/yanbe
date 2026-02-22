@@ -7,22 +7,19 @@ export class SelectField extends Field {
         super(options);
         this.options = options.options ?? [];
         this.default = options.default ?? options.value ?? (this.options[0] ?? '');
-        this.element = null;
     }
 
-    create() {
-        const row = this._createRow();
-        this.element = document.createElement('select');
+    _createElement() {
+        const el = document.createElement('select');
         for (const opt of this.options) {
             const optEl = document.createElement('option');
             optEl.value = opt;
             optEl.textContent = opt;
-            this.element.appendChild(optEl);
+            el.appendChild(optEl);
         }
-        this.element.value = this.default;
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        row.appendChild(this.element);
-        return row;
+        el.value = this.default;
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        return el;
     }
 
     getValue() {

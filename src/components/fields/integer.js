@@ -8,20 +8,17 @@ export class IntegerField extends Field {
         this.default = options.default ?? options.value ?? 0;
         this.min     = options.min     ?? null;
         this.max     = options.max     ?? null;
-        this.element = null;
     }
 
-    create() {
-        const row = this._createRow();
-        this.element = document.createElement('input');
-        this.element.type = 'number';
-        this.element.step = '1';
-        this.element.value = this.default;
-        if (this.min !== null) this.element.min = this.min;
-        if (this.max !== null) this.element.max = this.max;
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        row.appendChild(this.element);
-        return row;
+    _createElement() {
+        const el = document.createElement('input');
+        el.type = 'number';
+        el.step = '1';
+        el.value = this.default;
+        if (this.min !== null) el.min = this.min;
+        if (this.max !== null) el.max = this.max;
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        return el;
     }
 
     getValue() {

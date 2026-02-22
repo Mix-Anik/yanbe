@@ -6,7 +6,6 @@ export class ButtonField extends Field {
     constructor(options = {}) {
         super(options);
         this._onClick = options.onClick ?? null;
-        this.element = null;
     }
 
     create() {

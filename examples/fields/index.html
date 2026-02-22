@@ -19,7 +19,7 @@
     } from "yanbe";
 
     // ── Custom field type ──────────────────────────────────────────────────
-    // Implement three methods: create(), getValue(), setValue(value).
+    // Implement three methods: _createElement(), getValue(), setValue(value).
     // Call Field.register() so it survives copy-paste serialization.
     class ColorField extends Field {
       static type = 'color';
@@ -29,15 +29,12 @@
         this.default = options.default ?? '#3399ff';
       }
 
-      create() {
-        const row = this._createRow();          // <div class="field-row"> + <label>
+      _createElement() {
         const inp = document.createElement('input');
         inp.type = 'color';
         inp.value = this.default;
         inp.addEventListener('mousedown', e => e.stopPropagation());
-        this.element = inp;
-        row.appendChild(inp);
-        return row;
+        return inp;   // base Field.create() wraps in a row + sets this.element
       }
 
       getValue()      { return this.element.value; }

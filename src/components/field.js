@@ -17,11 +17,20 @@ export class Field {
         this.label  = options.label  ?? '';
         this.key    = options.key    ?? this.label.toLowerCase().replace(/\s+/g, '_');
         this.inline = options.inline ?? false;
+        this.element = null;
     }
 
-    // Override in subclass. Return root DOM element; store any input refs on `this`.
+    // Builds the row wrapper, calls _createElement(), stores result in this.element.
     create() {
-        throw new Error(`${this.constructor.name}.create() is not implemented.`);
+        const row = this.#createRow();
+        this.element = this._createElement();
+        row.appendChild(this.element);
+        return row;
+    }
+
+    // Override in subclass. Create and return the bare control element (no row).
+    _createElement() {
+        throw new Error(`${this.constructor.name}._createElement() is not implemented.`);
     }
 
     getValue() {
@@ -39,7 +48,7 @@ export class Field {
     // Creates a row wrapper with an optional label element.
     // Non-inline: .field-row uses display:contents so children become grid items.
     // Inline: .field-row--inline is a flex column (label above input).
-    _createRow() {
+    #createRow() {
         const row = document.createElement('div');
         row.className = this.inline ? 'field-row field-row--inline' : 'field-row';
         if (this.label) {

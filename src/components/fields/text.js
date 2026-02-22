@@ -8,19 +8,16 @@ export class TextField extends Field {
         this.default     = options.default     ?? options.value ?? '';
         this.placeholder = options.placeholder ?? '';
         this.maxlength   = options.maxlength   ?? null;
-        this.element = null;
     }
 
-    create() {
-        const row = this._createRow();
-        this.element = document.createElement('input');
-        this.element.type = 'text';
-        this.element.value = this.default;
-        if (this.placeholder) this.element.placeholder = this.placeholder;
-        if (this.maxlength !== null) this.element.maxLength = this.maxlength;
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        row.appendChild(this.element);
-        return row;
+    _createElement() {
+        const el = document.createElement('input');
+        el.type = 'text';
+        el.value = this.default;
+        if (this.placeholder) el.placeholder = this.placeholder;
+        if (this.maxlength !== null) el.maxLength = this.maxlength;
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        return el;
     }
 
     getValue() {

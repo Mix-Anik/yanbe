@@ -179,13 +179,14 @@ Drag-to-select on left-click. Creates a `.selection` div overlay, then on `mouse
 Renders a dashed bounding rectangle around all selected nodes when `selection.length > 1`. Supports group drag from the bounds element itself (uses the same lerp animation as single-node drag).
 
 ### `Field` (`src/components/field.js`) + built-in types (`src/components/fields.js`)
-Abstract base class for node field types. Each subclass implements `create()`, `getValue()`, `setValue(value)`, and `toJSON()`.
+Abstract base class for node field types. Each subclass implements `_createElement()`, `getValue()`, `setValue(value)`, and `toJSON()`. The base `create()` handles the row wrapper automatically.
 
 **Base class API:**
 ```js
 Field.register(MyFieldClass)         // register for fromJSON() reconstruction
 Field.fromJSON(savedData)            // → new instance from serialized definition
-field._createRow()                   // helper: <div class="field-row"> + <label>
+// field.create() is concrete: #createRow() → _createElement() → append → return row
+// field.element is set to the result of _createElement() before getValue() is called
 ```
 
 **Constructor options (shared by all fields):**
@@ -216,11 +217,11 @@ class MyField extends Field {
         this.default = options.default ?? options.value ?? <defaultValue>;
     }
 
-    create() {
-        const row = this._createRow();
-        // build DOM, store input ref on this.element
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        return row;
+    _createElement() {
+        const inp = document.createElement('input');
+        // configure inp…
+        inp.addEventListener('mousedown', e => e.stopPropagation());
+        return inp;   // base create() wraps in row + sets this.element
     }
 
     getValue()      { return this.element.value; }
@@ -231,7 +232,9 @@ class MyField extends Field {
 Field.register(MyField);
 ```
 
-**Important:** always call `e.stopPropagation()` on `mousedown` of any interactive element inside `create()` to prevent focus-related issues with the editor.
+**Important:** always call `e.stopPropagation()` on `mousedown` in `_createElement()` to prevent focus-related issues with the editor.
+
+**`ButtonField` exception:** it overrides `create()` entirely (returns a bare `<button>`, no row wrapper). Custom fields that need the same pattern can do the same.
 
 ---
 
