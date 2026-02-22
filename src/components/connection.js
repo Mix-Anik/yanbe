@@ -1,4 +1,5 @@
 import { BEZIER_STRENGTH } from "../constants.js";
+import { cubicBezierPath } from "../helpers.js";
 
 export class Connection {
     constructor(from, to, svg) {
@@ -20,9 +21,7 @@ export class Connection {
     update() {
         const { x: x1, y: y1 } = this.from.getCenter();
         const { x: x2, y: y2 } = this.to.getCenter();
-        const d = `M ${x1} ${y1} C ${x1 + BEZIER_STRENGTH} ${y1}, ${x2 - BEZIER_STRENGTH} ${y2}, ${x2} ${y2}`;
-
-        this.element.setAttribute('d', d);
+        this.element.setAttribute('d', cubicBezierPath(x1, y1, x2, y2, BEZIER_STRENGTH));
     }
 
     remove() {
@@ -53,9 +52,7 @@ export class PreviewConnection {
     update(mousePos) {
         const { x: x1, y: y1 } = this.editor.activePort.getCenter();
         const { x: x2, y: y2 } = this.editor.calcOffsetPos(mousePos);
-        const d = `M ${x1} ${y1} C ${x1 + BEZIER_STRENGTH} ${y1}, ${x2 - BEZIER_STRENGTH} ${y2}, ${x2} ${y2}`;
-
-        this.element.setAttribute('d', d);
+        this.element.setAttribute('d', cubicBezierPath(x1, y1, x2, y2, BEZIER_STRENGTH));
     }
 
     show() {

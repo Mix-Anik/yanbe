@@ -5,21 +5,21 @@ export class ButtonField extends Field {
 
     constructor(options = {}) {
         super(options);
-        this._onClick = options.onClick ?? null;
+        this.onClick = options.onClick ?? null;
+        this.text = options.text ?? null;
     }
 
-    create() {
-        this.element = document.createElement('button');
-        this.element.textContent = this.label;
-        this.element.className = 'field-button';
-        if (this._onClick) {
-            this.element.addEventListener('click', () => this._onClick(this._node));
+    _createElement() {
+        const el = document.createElement('button');
+        el.textContent = this.text;
+        el.className = 'field-button';
+        if (this.onClick) {
+            el.addEventListener('click', () => this.onClick(this.node));
         }
-        this.element.addEventListener('mousedown', e => e.stopPropagation());
-        return this.element;
+        el.addEventListener('mousedown', e => e.stopPropagation());
+        return el;
     }
 
-    // Buttons carry no serializable value.
     getValue() {
         return undefined;
     }
@@ -27,7 +27,6 @@ export class ButtonField extends Field {
     setValue() {}
 
     toJSON() {
-        // onClick is a function and cannot be serialized.
         const { key: _key, ...base } = super.toJSON();
         return base;
     }

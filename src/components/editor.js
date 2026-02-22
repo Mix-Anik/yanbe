@@ -3,7 +3,7 @@ import { Field } from "./field.js";
 import { PreviewConnection } from "./connection.js";
 import { ContextMenu } from "./menu.js";
 import { clamp } from "../helpers.js";
-import { GRID, PORT_TYPE } from '../constants.js';
+import { GRID, PORT_TYPE, NODE, DRAG_DEBOUNCE_MS } from '../constants.js';
 import { RectSelectTool, SelectionBounds } from "./selection.js";
 
 export class Editor {
@@ -19,26 +19,51 @@ export class Editor {
         this.isDragging = false;
         this.activePort = null;
         this.selection = [];
-        this._suppressNextClick = false;
+        this._lastDragTS = 0;
         this._cursorPos = {x: 0, y: 0};
         this.snapToGrid = true;
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
-        document.addEventListener('keydown', (e) => this.onKeyDown(e));
-        document.addEventListener('paste', (e) => this.onPaste(e));
-        document.addEventListener('click', (e) => this.onClick(e));
-        document.addEventListener('click', (e) => this.onConnectionClick(e));
-        document.addEventListener('click', (e) => this.onPortClick(e));
-        document.addEventListener('click', (e) => this.onActivePortClick(e));
-        document.addEventListener('mousedown', (e) => this.onNodeHold(e));
-        document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+
+        this._onKeyDown = (e) => this.onKeyDown(e);
+        this._onPaste = (e) => this.onPaste(e);
+        this._onClick = (e) => this.onClick(e);
+        this._onConnectionClick = (e) => this.onConnectionClick(e);
+        this._onPortClick = (e) => this.onPortClick(e);
+        this._onActivePortClick = (e) => this.onActivePortClick(e);
+        this._onNodeHold = (e) => this.onNodeHold(e);
+        this._onMouseMove = (e) => this.onMouseMove(e);
+
+        document.addEventListener('keydown', this._onKeyDown);
+        document.addEventListener('paste', this._onPaste);
+        document.addEventListener('click', this._onClick);
+        document.addEventListener('click', this._onConnectionClick);
+        document.addEventListener('click', this._onPortClick);
+        document.addEventListener('click', this._onActivePortClick);
+        document.addEventListener('mousedown', this._onNodeHold);
+        document.addEventListener('mousemove', this._onMouseMove);
 
         this.previewConnection = new PreviewConnection(this);
         this.contextMenu = new ContextMenu(this);
         this.selector = new RectSelectTool(this);
 
         this.selectionBounds = new SelectionBounds(this);
+    }
+
+    destroy() {
+        this.element.removeEventListener('wheel', this.zoom);
+        this.element.removeEventListener('mousedown', this.pan);
+        document.removeEventListener('keydown', this._onKeyDown);
+        document.removeEventListener('paste', this._onPaste);
+        document.removeEventListener('click', this._onClick);
+        document.removeEventListener('click', this._onConnectionClick);
+        document.removeEventListener('click', this._onPortClick);
+        document.removeEventListener('click', this._onActivePortClick);
+        document.removeEventListener('mousedown', this._onNodeHold);
+        document.removeEventListener('mousemove', this._onMouseMove);
+        this.contextMenu.destroy();
+        this.selector.destroy();
     }
 
     addNode(node) {
@@ -137,10 +162,7 @@ export class Editor {
     }
 
     onClick(e) {
-        if (this._suppressNextClick) {
-            this._suppressNextClick = false;
-            return;
-        }
+        if (Date.now() - this._lastDragTS < DRAG_DEBOUNCE_MS) return;
 
         if (e.target.classList.contains('port') || e.target.classList.contains('connection')) return;
 
@@ -220,6 +242,14 @@ export class Editor {
 
     onKeyDown(e) {
         if (e.ctrlKey && e.key.toLowerCase() === 'c') this.copy();
+
+        if (e.key === 'Delete') {
+            const tag = document.activeElement?.tagName;
+            if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') {
+                e.preventDefault();
+                this.contextMenu.deleteHandler();
+            }
+        }
     }
 
     copy() {
@@ -258,8 +288,8 @@ export class Editor {
         for (const n of data.nodes) {
             minX = Math.min(minX, n.x);
             minY = Math.min(minY, n.y);
-            maxX = Math.max(maxX, n.x + 120);
-            maxY = Math.max(maxY, n.y + 60);
+            maxX = Math.max(maxX, n.x + NODE.DEFAULT_WIDTH);
+            maxY = Math.max(maxY, n.y + NODE.DEFAULT_HEIGHT);
         }
         const dx = this._cursorPos.x - (minX + maxX) / 2;
         const dy = this._cursorPos.y - (minY + maxY) / 2;
@@ -267,31 +297,36 @@ export class Editor {
         const idMap = new Map();
         const newNodes = [];
 
-        for (const nodeData of data.nodes) {
-            const fields = (nodeData.fields ?? []).map(f => Field.fromJSON(f));
+        try {
+            for (const nodeData of data.nodes) {
+                const fields = (nodeData.fields ?? []).map(f => Field.fromJSON(f));
 
-            const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
-                fields,
-                input: { allow: nodeData.ports.input.allow, many: nodeData.ports.input.many },
-                output: { many: nodeData.ports.output.many }
-            });
-            idMap.set(nodeData.id, node);
-            newNodes.push(node);
-            this.addNode(node);
+                const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
+                    fields,
+                    input: { allow: nodeData.ports.input.allow, many: nodeData.ports.input.many },
+                    output: { many: nodeData.ports.output.many }
+                });
+                idMap.set(nodeData.id, node);
+                newNodes.push(node);
+                this.addNode(node);
 
-            // Restore live field values saved at copy time.
-            for (let i = 0; i < fields.length; i++) {
-                const saved = nodeData.fields[i];
-                if (saved.value !== undefined)
-                    fields[i].setValue(saved.value);
+                for (let i = 0; i < fields.length; i++) {
+                    const saved = nodeData.fields[i];
+                    if (saved.value !== undefined)
+                        fields[i].setValue(saved.value);
+                }
             }
-        }
 
-        for (const connData of data.connections) {
-            const fromNode = idMap.get(connData.from);
-            const toNode = idMap.get(connData.to);
-            if (fromNode && toNode)
-                fromNode.connect(toNode);
+            for (const connData of data.connections) {
+                const fromNode = idMap.get(connData.from);
+                const toNode = idMap.get(connData.to);
+                if (fromNode && toNode)
+                    fromNode.connect(toNode);
+            }
+        } catch (err) {
+            console.error('Paste failed, rolling back.', err);
+            for (const node of newNodes) node.remove();
+            return;
         }
 
         this.clearSelection();

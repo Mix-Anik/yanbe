@@ -5,7 +5,7 @@ export class ColorField extends Field {
 
     constructor(options = {}) {
         super(options);
-        this.default = options.default ?? '#ffffffff';
+        this.default = options.default ?? '#ffffff';
     }
 
     _createElement() {

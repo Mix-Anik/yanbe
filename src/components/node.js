@@ -1,12 +1,14 @@
 import { InputPort, OutputPort } from "./port.js";
-import { lerp, roundToStep } from "../helpers.js";
+import { roundToStep, animateToWishPos } from "../helpers.js";
 import { GRID } from "../constants.js";
 
 export class Node {
     static _nextId = 0;
 
+    static resetIdCounter() { Node._nextId = 0; }
+
     constructor(type, x, y, options={}) {
-        this.id = Node._nextId++;
+        this.id = options.id ?? Node._nextId++;
         this.x = x;
         this.y = y;
         this.type = type;
@@ -46,9 +48,7 @@ export class Node {
         this.element.appendChild(this.bodyElement);
 
         for (const field of this.fields) {
-            if (field._onClick !== undefined)
-                field._node = this;
-            this.bodyElement.appendChild(field.create());
+            this.bodyElement.appendChild(field.create(this));
         }
 
         this.editor.viewport.appendChild(this.element);
@@ -103,37 +103,26 @@ export class Node {
     static move(instance, startPos) {
         const startMousePos = instance.editor.calcOffsetPos(startPos);
         const nodeOffset = {x: startMousePos.x - instance.x, y: startMousePos.y - instance.y};
-        const animate = () => {
-            instance.x = lerp(instance.x, instance.wishPos.x, 0.2);
-            instance.y = lerp(instance.y, instance.wishPos.y, 0.2);
-            instance.element.style.left = `${instance.x}px`;
-            instance.element.style.top = `${instance.y}px`;
-            instance.redrawConnections();
-            instance.editor.updateSelectionBounds();
 
-            if (Math.abs(instance.x - instance.wishPos.x) > 0.5 || Math.abs(instance.y - instance.wishPos.y) > 0.5)
-                requestAnimationFrame(animate);
-            else
-                instance.animating = false;
-        }
         const onDrag = (event) => {
             const endMousePos = instance.editor.calcOffsetPos({x: event.clientX, y: event.clientY});
             const snap = instance.editor.snapToGrid;
             instance.wishPos = {
                 x: snap ? roundToStep((endMousePos.x - nodeOffset.x), GRID.SIZE) : endMousePos.x - nodeOffset.x,
                 y: snap ? roundToStep((endMousePos.y - nodeOffset.y), GRID.SIZE) : endMousePos.y - nodeOffset.y
-            }
+            };
 
             if (!instance.animating) {
                 instance.animating = true;
-                requestAnimationFrame(animate);
+                animateToWishPos(instance, () => instance.editor.updateSelectionBounds());
             }
-        }
+        };
 
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', () => {
             document.removeEventListener('mousemove', onDrag);
             instance.editor.isDragging = false;
+            instance.editor._lastDragTS = Date.now();
         }, { once: true });
     }
 }

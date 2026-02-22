@@ -17,10 +17,12 @@ export class Field {
         this.label  = options.label  ?? '';
         this.inline = options.inline ?? false;
         this.element = null;
+        this.node = null;
     }
 
     // Builds the row wrapper, calls _createElement(), stores result in this.element.
-    create() {
+    create(node) {
+        this.node = node;
         const row = this.#createRow();
         this.element = this._createElement();
         row.appendChild(this.element);

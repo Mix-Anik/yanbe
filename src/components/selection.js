@@ -1,4 +1,4 @@
-import { lerp, roundToStep } from '../helpers.js';
+import { roundToStep, animateToWishPos } from '../helpers.js';
 import { GRID } from '../constants.js';
 
 export class SelectionBounds {
@@ -20,23 +20,6 @@ export class SelectionBounds {
         const startCanvasPos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
         const startPositions = this.editor.selection.map(node => ({node, x: node.x, y: node.y}));
 
-        const animateNode = (node) => {
-            const step = () => {
-                node.x = lerp(node.x, node.wishPos.x, 0.2);
-                node.y = lerp(node.y, node.wishPos.y, 0.2);
-                node.element.style.left = `${node.x}px`;
-                node.element.style.top = `${node.y}px`;
-                node.redrawConnections();
-                this.editor.updateSelectionBounds();
-
-                if (Math.abs(node.x - node.wishPos.x) > 0.5 || Math.abs(node.y - node.wishPos.y) > 0.5)
-                    requestAnimationFrame(step);
-                else
-                    node.animating = false;
-            };
-            requestAnimationFrame(step);
-        };
-
         const onMouseMove = (e) => {
             const currentPos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
             const dx = currentPos.x - startCanvasPos.x;
@@ -50,14 +33,14 @@ export class SelectionBounds {
                 };
                 if (!node.animating) {
                     node.animating = true;
-                    animateNode(node);
+                    animateToWishPos(node, () => this.editor.updateSelectionBounds());
                 }
             }
         };
 
         const onMouseUp = () => {
             this.editor.isDragging = false;
-            this.editor._suppressNextClick = true;
+            this.editor._lastDragTS = Date.now();
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         };
@@ -93,7 +76,12 @@ export class SelectionBounds {
 export class RectSelectTool {
     constructor(editor) {
         this.editor = editor;
-        document.addEventListener('mousedown', (e) => this.onSelecting(e));
+        this._onMouseDown = (e) => this.onSelecting(e);
+        document.addEventListener('mousedown', this._onMouseDown);
+    }
+
+    destroy() {
+        document.removeEventListener('mousedown', this._onMouseDown);
     }
 
     onSelecting(e) {
@@ -124,7 +112,7 @@ export class RectSelectTool {
             element.style.top = `${Math.min(startMousePos.y, y)}px`;
             element.style.width = `${Math.abs(startMousePos.x - x)}px`;
             element.style.height = `${Math.abs(startMousePos.y - y)}px`;
-        }
+        };
 
         const onMouseUp = () => {
             if (hasDragged) {
@@ -137,13 +125,13 @@ export class RectSelectTool {
                                      rect.bottom <= selectionRect.bottom;
                     if (isInside) this.editor.addToSelection(node);
                 });
-                this.editor._suppressNextClick = true;
+                this.editor._lastDragTS = Date.now();
             }
 
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             element.remove();
-        }
+        };
 
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);

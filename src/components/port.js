@@ -17,7 +17,7 @@ export class Port {
     }
 
     remove() {
-        for (let connection of this.connections.values()) {
+        for (let connection of [...this.connections.values()]) {
             connection.remove();
         }
         this.element.remove();

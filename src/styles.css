@@ -187,6 +187,7 @@ body {
     border: 4px solid var(--p-border);
     position: absolute;
     top: 50%;
+    cursor: pointer;
     transform: translateY(-50%);
 }
 
