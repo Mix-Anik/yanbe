@@ -287,14 +287,23 @@ All visual configuration is via CSS custom properties on `:root`:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `--accent` | `#d4a017` | Gold accent |
+| `--accent` | `#d4a017` | Primary accent color |
+| `--on-accent` | `black` | Text color when placed on accent background |
 | `--bg` | `#1a1a1a` | Editor background |
 | `--bg-pattern` | `#4e4e4e` | Grid dot color |
 | `--n-bg` | `#145d6473` | Node background |
 | `--n-border` | `#aaa` | Node border |
-| `--n-text` | `white` | Node label color |
+| `--n-text` | `white` | Node text color |
 | `--p-bg` | `white` | Port circle fill |
+| `--p-border` | `#aaa` | Port border color |
+| `--field-input-bg` | `#ffffff12` | Field input/select background |
+| `--field-border` | `#ffffff20` | Field input/select/button border |
+| `--conn` | `white` | Connection wire stroke color |
+| `--preview-conn` | `gray` | Preview (drag) wire stroke color |
+| `--selection-bg` | `#d4a0170f` | Rect-select overlay fill |
 | `--ctx-menu-bg` | `#145d64aa` | Context menu background |
+| `--ctx-menu-border` | `white` | Context menu border |
+| `--ctx-menu-btn` | `white` | Context menu button text color |
 
 Node width is `140px`; height is `auto` (grows with fields). The header is fixed at `36px`. Port circles are `14×14px` (input = circle, output = rotated square/diamond).
 
@@ -306,8 +315,8 @@ CSS classes used by components:
 | `.node-header` | Drag handle + port anchor |
 | `.node-title` | Type label inside header |
 | `.node-body` | Field container (hidden when empty) |
-| `.field-row` | Inline label+control row |
-| `.field-row--block` | Block label-above-control row |
+| `.field-row` | Full-width label+control row (non-inline) |
+| `.field-row--inline` | Compact flex-column row; adjacent inline fields share a line |
 | `.field-button` | Button field element |
 | `.port` | Port div (also `.input` or `.output`) |
 | `.active` | Selected node |

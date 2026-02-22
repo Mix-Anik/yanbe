@@ -15,7 +15,6 @@ export class Field {
 
     constructor(options = {}) {
         this.label  = options.label  ?? '';
-        this.key    = options.key    ?? this.label.toLowerCase().replace(/\s+/g, '_');
         this.inline = options.inline ?? false;
         this.element = null;
     }
@@ -42,7 +41,7 @@ export class Field {
     }
 
     toJSON() {
-        return { type: this.constructor.type, label: this.label, key: this.key, inline: this.inline };
+        return { type: this.constructor.type, label: this.label, inline: this.inline };
     }
 
     // Creates a row wrapper with an optional label element.

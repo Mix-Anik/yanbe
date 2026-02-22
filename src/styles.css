@@ -1,16 +1,21 @@
 :root {
-    --accent: #d4a017;
-    --bg: #1a1a1a;
-    --bg-pattern: #4e4e4e;
-    --n-bg: #145d6473;
-    --n-border: #aaa;
-    --n-text: white;
-    --p-bg: white;
-    --p-border: #aaa;
-    --ctx-menu-bg: #145d64aa;
+    --accent:         #d4a017;
+    --on-accent:      black;
+    --bg:             #1a1a1a;
+    --bg-pattern:     #4e4e4e;
+    --n-bg:           #145d6473;
+    --n-border:       #aaa;
+    --n-text:         white;
+    --p-bg:           white;
+    --p-border:       #aaa;
+    --field-input-bg: #ffffff12;
+    --field-border:   #ffffff20;
+    --conn:           white;
+    --preview-conn:   gray;
+    --selection-bg:   #d4a0170f;
+    --ctx-menu-bg:    #145d64aa;
     --ctx-menu-border: white;
-    --ctx-menu-btn: white;
-    --ctx-menu-btn-hover: black;
+    --ctx-menu-btn:   white;
 }
 
 body {
@@ -58,7 +63,7 @@ body {
     border-bottom: 2px solid var(--n-border);
 }
 
-.node:not(:has(.node-body .field-row)) .node-header {
+.node:has(.node-body:empty) .node-header {
     border-bottom: none;
 }
 
@@ -68,8 +73,6 @@ body {
     pointer-events: none;
 }
 
-/* Node body: flex-wrap so inline fields (flex:1) share rows naturally,
-   full-width fields force a new row via width:100%. */
 .node-body {
     display: flex;
     flex-wrap: wrap;
@@ -82,7 +85,6 @@ body {
     display: none;
 }
 
-/* Non-inline field: full-width 2-col grid keeps label/input aligned across rows. */
 .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -93,41 +95,31 @@ body {
 }
 
 .field-row label {
-    font-size: 12px;
     opacity: 0.75;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* Inline field: compact stack, flex:1 lets adjacent inline fields share a row. */
 .field-row--inline {
     display: flex;
     flex-direction: column;
     gap: 3px;
     flex: 1;
     min-width: 40px;
-    width: auto;
     font-size: 12px;
 }
 
 .field-row--inline label {
     font-size: 11px;
-    opacity: 0.75;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
-/* Shared input/select styles */
 .field-row input[type="text"],
-.field-row input[type="number"],
-.field-row--inline input[type="text"],
-.field-row--inline input[type="number"] {
+.field-row input[type="number"] {
     width: 100%;
     box-sizing: border-box;
-    background: #ffffff12;
-    border: 1px solid #ffffff20;
+    background: var(--field-input-bg);
+    border: 1px solid var(--field-border);
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
@@ -136,25 +128,21 @@ body {
 }
 
 .field-row input[type="text"]:focus,
-.field-row input[type="number"]:focus,
-.field-row--inline input[type="text"]:focus,
-.field-row--inline input[type="number"]:focus {
+.field-row input[type="number"]:focus {
     outline: none;
     border-color: var(--accent);
 }
 
-.field-row input[type="checkbox"],
-.field-row--inline input[type="checkbox"] {
+.field-row input[type="checkbox"] {
     accent-color: var(--accent);
     cursor: pointer;
 }
 
-.field-row select,
-.field-row--inline select {
+.field-row select {
     width: 100%;
     box-sizing: border-box;
-    background: #ffffff12;
-    border: 1px solid #ffffff20;
+    background: var(--field-input-bg);
+    border: 1px solid var(--field-border);
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
@@ -162,8 +150,7 @@ body {
     min-width: 0;
 }
 
-.field-row select:focus,
-.field-row--inline select:focus {
+.field-row select:focus {
     outline: none;
     border-color: var(--accent);
 }
@@ -172,7 +159,7 @@ body {
     width: 100%;
     box-sizing: border-box;
     background: transparent;
-    border: 1px solid #ffffff20;
+    border: 1px solid var(--field-border);
     border-radius: 3px;
     color: var(--n-text);
     font-size: 12px;
@@ -185,7 +172,7 @@ body {
 .field-button:hover {
     background: var(--accent);
     border-color: var(--accent);
-    color: black;
+    color: var(--on-accent);
     opacity: 1;
 }
 
@@ -208,7 +195,7 @@ body {
 }
 
 .connection {
-    stroke: white;
+    stroke: var(--conn);
     stroke-width: 6;
     fill: none;
     cursor: pointer;
@@ -220,7 +207,7 @@ body {
 }
 
 .preview-connection {
-    stroke: gray;
+    stroke: var(--preview-conn);
     stroke-width: 6;
     stroke-dasharray: 4, 4;
     fill: none;
@@ -263,17 +250,13 @@ svg {
     margin: 0;
 }
 
-.ctx-menu ul li {
-    height: 100%;
-}
-
 .ctx-menu-btn {
     display: flex;
     justify-content: space-between;
     color: var(--ctx-menu-btn);
     background: none;
     border: none;
-    padding: 10px 10px;
+    padding: 10px;
     cursor: pointer;
     font-family: monospace;
     font-size: 14px;
@@ -287,13 +270,13 @@ svg {
 
 .ctx-menu-btn:hover {
     background-color: var(--accent);
-    color: var(--ctx-menu-btn-hover);
+    color: var(--on-accent);
 }
 
 .selection {
     position: absolute;
     border: 1px dashed var(--accent);
-    background-color: #d4a0170f;
+    background-color: var(--selection-bg);
     display: block;
     pointer-events: none;
 }
