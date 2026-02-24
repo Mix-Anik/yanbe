@@ -4,6 +4,7 @@ import { GRID, DRAG_DEBOUNCE_MS, EVENTS } from '../constants.js';
 export class SelectionPlugin {
     constructor(editor) {
         this.editor = editor;
+        editor.selection = [];
 
         this._onClick = (e) => this.onClick(e);
         document.addEventListener('click', this._onClick);
@@ -18,6 +19,27 @@ export class SelectionPlugin {
 
         this._unsubSelection = editor.on(EVENTS.SELECTION_CHANGE, ({ selection }) => this.updateBounds(selection));
         this._unsubMoved = editor.on(EVENTS.NODE_MOVED, () => this.updateBounds(editor.selection));
+
+        this._unsubNodeHold = editor.on(EVENTS.NODE_HOLD, ({ node }) => {
+            if (!editor.selection.includes(node))
+                this.clearSelection();
+            this.addToSelection(node);
+        });
+
+        this._unsubNodeRemoved = editor.on(EVENTS.NODE_REMOVED, ({ node }) => {
+            if (editor.selection.includes(node))
+                this.removeFromSelection(node);
+        });
+
+        this._unsubPaste = editor.on(EVENTS.ACTION_PASTE, ({ nodes }) => {
+            this.clearSelection();
+            for (const node of nodes)
+                this.addToSelection(node);
+        });
+
+        this._unsubSelect = editor.on(EVENTS.ACTION_SELECT, ({ node }) => {
+            this.addToSelection(node);
+        });
     }
 
     destroy() {
@@ -25,17 +47,47 @@ export class SelectionPlugin {
         document.removeEventListener('mousedown', this._onMouseDown);
         this._unsubSelection();
         this._unsubMoved();
+        this._unsubNodeHold();
+        this._unsubNodeRemoved();
+        this._unsubPaste();
+        this._unsubSelect();
         this.boundsEl.remove();
+    }
+
+    addToSelection(obj) {
+        if (!obj || obj.element.classList.contains('active') || this.editor.selection.includes(obj))
+            return;
+
+        obj.element.classList.add('active');
+        this.editor.selection.push(obj);
+        this.editor.emit(EVENTS.SELECTION_CHANGE, { selection: this.editor.selection });
+    }
+
+    removeFromSelection(obj) {
+        obj.element.classList.remove('active');
+        const idx = this.editor.selection.indexOf(obj);
+        this.editor.selection.splice(idx, 1);
+        this.editor.emit(EVENTS.SELECTION_CHANGE, { selection: this.editor.selection });
+    }
+
+    clearSelection() {
+        if (!this.editor.selection.length) return;
+
+        for (const obj of this.editor.selection)
+            obj.element.classList.remove('active');
+
+        this.editor.selection = [];
+        this.editor.emit(EVENTS.SELECTION_CHANGE, { selection: [] });
     }
 
     onClick(e) {
         if (Date.now() - this.editor._lastDragTS < DRAG_DEBOUNCE_MS) return;
         if (e.target.classList.contains('port') || e.target.classList.contains('connection')) return;
 
-        this.editor.clearSelection();
+        this.clearSelection();
 
         const nodeEl = e.target.closest('.node');
-        if (nodeEl) this.editor.addToSelection(nodeEl.__ref);
+        if (nodeEl) this.addToSelection(nodeEl.__ref);
     }
 
     onSelecting(e) {
@@ -43,7 +95,7 @@ export class SelectionPlugin {
         if (e.target.classList.contains('port') || e.target.classList.contains('connection')) return;
         if (!this.editor.element.contains(e.target)) return;
 
-        this.editor.clearSelection();
+        this.clearSelection();
         const element = document.createElement('div');
         this.editor.element.appendChild(element);
         element.className = 'selection';
@@ -77,7 +129,7 @@ export class SelectionPlugin {
                                      rect.right <= selectionRect.right &&
                                      rect.top >= selectionRect.top &&
                                      rect.bottom <= selectionRect.bottom;
-                    if (isInside) this.editor.addToSelection(node);
+                    if (isInside) this.addToSelection(node);
                 });
                 this.editor._lastDragTS = Date.now();
             }

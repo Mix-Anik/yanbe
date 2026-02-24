@@ -18,7 +18,6 @@ export class Editor {
 
         this.isDragging = false;
         this.activePort = null;
-        this.selection = [];
         this._lastDragTS = 0;
         this._cursorPos = {x: 0, y: 0};
         this.snapToGrid = true;
@@ -203,37 +202,9 @@ export class Editor {
         if (!nodeEl) return;
 
         const node = nodeEl.__ref;
-        if (!this.selection.includes(node))
-            this.clearSelection();
-        this.addToSelection(node);
         this.isDragging = true;
+        this.emit(EVENTS.NODE_HOLD, { node });
         Node.move(node, {x: e.clientX, y: e.clientY});
-    }
-
-    addToSelection(obj) {
-        if (!obj || obj.element.classList.contains('active') || this.selection.includes(obj))
-            return;
-
-        obj.element.classList.add('active');
-        this.selection.push(obj);
-        this.emit(EVENTS.SELECTION_CHANGE, { selection: this.selection });
-    }
-
-    removeFromSelection(obj) {
-        obj.element.classList.remove('active');
-        const idx = this.selection.indexOf(obj);
-        this.selection.splice(idx, 1);
-        this.emit(EVENTS.SELECTION_CHANGE, { selection: this.selection });
-    }
-
-    clearSelection() {
-        if (!this.selection.length) return;
-
-        for (const obj of this.selection)
-            obj.element.classList.remove('active');
-
-        this.selection = [];
-        this.emit(EVENTS.SELECTION_CHANGE, { selection: [] });
     }
 
     toJSON() {

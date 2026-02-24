@@ -27,7 +27,11 @@ export const DRAG_DEBOUNCE_MS = 50;
 export const EVENTS = {
     NODE_ADD:          'node:add',
     NODE_MOVED:        'node:moved',
+    NODE_HOLD:         'node:hold',
+    NODE_REMOVED:      'node:removed',
     SELECTION_CHANGE:  'selection:change',
     ACTION_COPY:       'action:copy',
     ACTION_DELETE:     'action:delete',
+    ACTION_PASTE:      'action:paste',
+    ACTION_SELECT:     'action:select',
 };

@@ -92,8 +92,6 @@ export class ClipboardPlugin {
             return;
         }
 
-        this.editor.clearSelection();
-        for (const node of newNodes)
-            this.editor.addToSelection(node);
+        this.editor.emit(EVENTS.ACTION_PASTE, { nodes: newNodes });
     }
 }

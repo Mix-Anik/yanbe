@@ -42,7 +42,7 @@ export class ContextMenuPlugin {
                 if (!btn.ctx.some(c => e.target.classList.contains(c)))
                     continue;
 
-                this.editor.addToSelection(e.target.__ref);
+                this.editor.emit(EVENTS.ACTION_SELECT, { node: e.target.__ref });
             }
 
             const el = document.createElement('li');
@@ -77,6 +77,5 @@ export class ContextMenuPlugin {
         for (let obj of [...this.editor.selection]) {
             obj.remove();
         }
-        this.editor.clearSelection();
     }
 }

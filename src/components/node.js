@@ -59,6 +59,7 @@ export class Node {
     remove() {
         const idx = this.editor.nodes.indexOf(this);
         this.editor.nodes.splice(idx, 1);
+        this.editor.emit(EVENTS.NODE_REMOVED, { node: this });
         this.ports.input.remove();
         this.ports.output.remove();
         this.element.remove();
