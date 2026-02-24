@@ -15,7 +15,9 @@
     import {
       Editor, Node, Field,
       TextField, IntegerField, DecimalField,
-      CheckboxField, SelectField, ButtonField
+      CheckboxField, SelectField, ButtonField,
+      SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin,
+      ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin
     } from "yanbe";
 
     // ── Custom field type ──────────────────────────────────────────────────
@@ -45,7 +47,9 @@
     Field.register(ColorField);
 
     // ── Editor setup ───────────────────────────────────────────────────────
-    const editor = new Editor('editor');
+    const editor = new Editor('editor', {
+      plugins: [SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin]
+    });
 
     // Node with all built-in field types
     const source = new Node('Color Correct', 100, 80, {

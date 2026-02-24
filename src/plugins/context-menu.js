@@ -1,16 +1,17 @@
-import { Node } from "./node.js";
+import { Node } from '../components/node.js';
 
-export class ContextMenu {
+export class ContextMenuPlugin {
     constructor(editor) {
         this.editor = editor;
         this.buttons = [
             {label: 'Add Node', shortcut: null, handler: (e) => this.addNodeHandler(e), ctx: null},
-            {label: 'Delete', shortcut: 'del', handler: (ctx) => this.deleteHandler(ctx), ctx: ['node']}
+            {label: 'Delete', shortcut: 'del', handler: () => this.deleteHandler(), ctx: ['node']}
         ];
         this.listeners = [];
 
         this._show = (e) => this.show(e);
         this._hide = () => this.hide();
+        this._unsubDelete = editor.on('action:delete', () => this.deleteHandler());
 
         document.addEventListener('contextmenu', this._show);
         document.addEventListener('click', this._hide);
@@ -19,6 +20,7 @@ export class ContextMenu {
     destroy() {
         document.removeEventListener('contextmenu', this._show);
         document.removeEventListener('click', this._hide);
+        this._unsubDelete();
         this.hide();
     }
 

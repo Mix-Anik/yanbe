@@ -114,7 +114,7 @@ export class Node {
 
             if (!instance.animating) {
                 instance.animating = true;
-                animateToWishPos(instance, () => instance.editor.updateSelectionBounds());
+                animateToWishPos(instance, () => instance.editor.emit('node:moved', { node: instance }));
             }
         };
 
