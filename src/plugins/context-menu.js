@@ -1,4 +1,5 @@
 import { Node } from '../components/node.js';
+import { EVENTS } from '../constants.js';
 
 export class ContextMenuPlugin {
     constructor(editor) {
@@ -11,7 +12,7 @@ export class ContextMenuPlugin {
 
         this._show = (e) => this.show(e);
         this._hide = () => this.hide();
-        this._unsubDelete = editor.on('action:delete', () => this.deleteHandler());
+        this._unsubDelete = editor.on(EVENTS.ACTION_DELETE, () => this.deleteHandler());
 
         document.addEventListener('contextmenu', this._show);
         document.addEventListener('click', this._hide);

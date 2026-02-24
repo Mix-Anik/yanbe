@@ -1,11 +1,11 @@
 import { Node } from '../components/node.js';
 import { Field } from '../components/field.js';
-import { NODE } from '../constants.js';
+import { NODE, EVENTS } from '../constants.js';
 
 export class ClipboardPlugin {
     constructor(editor) {
         this.editor = editor;
-        this._unsubCopy = editor.on('action:copy', () => this.copy());
+        this._unsubCopy = editor.on(EVENTS.ACTION_COPY, () => this.copy());
         this._onPaste = (e) => this.onPaste(e);
         document.addEventListener('paste', this._onPaste);
     }

@@ -1,3 +1,5 @@
+import { EVENTS } from '../constants.js';
+
 export class KeyboardPlugin {
     constructor(editor) {
         this.editor = editor;
@@ -11,13 +13,13 @@ export class KeyboardPlugin {
 
     onKeyDown(e) {
         if (e.ctrlKey && e.key.toLowerCase() === 'c')
-            this.editor.emit('action:copy');
+            this.editor.emit(EVENTS.ACTION_COPY);
 
         if (e.key === 'Delete') {
             const tag = document.activeElement?.tagName;
             if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') {
                 e.preventDefault();
-                this.editor.emit('action:delete');
+                this.editor.emit(EVENTS.ACTION_DELETE);
             }
         }
     }

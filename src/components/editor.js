@@ -1,7 +1,7 @@
 import { Node } from "./node.js";
 import { PreviewConnection } from "./connection.js";
 import { clamp } from "../helpers.js";
-import { GRID, PORT_TYPE } from '../constants.js';
+import { GRID, PORT_TYPE, EVENTS } from '../constants.js';
 
 export class Editor {
     _listeners = new Map();
@@ -80,7 +80,7 @@ export class Editor {
     addNode(node) {
         this.nodes.push(node);
         node.create(this);
-        this.emit('node:add', { node });
+        this.emit(EVENTS.NODE_ADD, { node });
     }
 
     calcOffsetPos(pos) {
@@ -216,14 +216,14 @@ export class Editor {
 
         obj.element.classList.add('active');
         this.selection.push(obj);
-        this.emit('selection:change', { selection: this.selection });
+        this.emit(EVENTS.SELECTION_CHANGE, { selection: this.selection });
     }
 
     removeFromSelection(obj) {
         obj.element.classList.remove('active');
         const idx = this.selection.indexOf(obj);
         this.selection.splice(idx, 1);
-        this.emit('selection:change', { selection: this.selection });
+        this.emit(EVENTS.SELECTION_CHANGE, { selection: this.selection });
     }
 
     clearSelection() {
@@ -233,7 +233,7 @@ export class Editor {
             obj.element.classList.remove('active');
 
         this.selection = [];
-        this.emit('selection:change', { selection: [] });
+        this.emit(EVENTS.SELECTION_CHANGE, { selection: [] });
     }
 
     toJSON() {

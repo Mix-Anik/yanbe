@@ -1,4 +1,5 @@
 // Core
+export * from './constants.js';
 export { Editor } from './components/editor.js';
 export { Node } from './components/node.js';
 export { Port, InputPort, OutputPort } from './components/port.js';

@@ -1,5 +1,5 @@
 import { roundToStep, animateToWishPos } from '../helpers.js';
-import { GRID, DRAG_DEBOUNCE_MS } from '../constants.js';
+import { GRID, DRAG_DEBOUNCE_MS, EVENTS } from '../constants.js';
 
 export class SelectionPlugin {
     constructor(editor) {
@@ -98,8 +98,8 @@ export class SelectionBoundsPlugin {
 
         this.element.addEventListener('mousedown', (e) => this.onDragStart(e));
 
-        this._unsubSelection = editor.on('selection:change', ({ selection }) => this.update(selection));
-        this._unsubMoved = editor.on('node:moved', () => this.update(editor.selection));
+        this._unsubSelection = editor.on(EVENTS.SELECTION_CHANGE, ({ selection }) => this.update(selection));
+        this._unsubMoved = editor.on(EVENTS.NODE_MOVED, () => this.update(editor.selection));
     }
 
     destroy() {
@@ -129,7 +129,7 @@ export class SelectionBoundsPlugin {
                 };
                 if (!node.animating) {
                     node.animating = true;
-                    animateToWishPos(node, () => this.editor.emit('node:moved', { node }));
+                    animateToWishPos(node, () => this.editor.emit(EVENTS.NODE_MOVED, { node }));
                 }
             }
         };

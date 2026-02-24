@@ -1,6 +1,6 @@
 import { InputPort, OutputPort } from "./port.js";
 import { roundToStep, animateToWishPos } from "../helpers.js";
-import { GRID } from "../constants.js";
+import { GRID, EVENTS } from "../constants.js";
 
 export class Node {
     static _nextId = 0;
@@ -114,7 +114,7 @@ export class Node {
 
             if (!instance.animating) {
                 instance.animating = true;
-                animateToWishPos(instance, () => instance.editor.emit('node:moved', { node: instance }));
+                animateToWishPos(instance, () => instance.editor.emit(EVENTS.NODE_MOVED, { node: instance }));
             }
         };
 
