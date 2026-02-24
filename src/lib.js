@@ -14,7 +14,7 @@ export { CheckboxField } from './components/fields/checkbox.js';
 export { ColorField } from './components/fields/color.js';
 
 // Plugins
-export { SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin } from './plugins/selection.js';
+export { SelectionPlugin } from './plugins/selection.js';
 export { ContextMenuPlugin } from './plugins/context-menu.js';
 export { KeyboardPlugin } from './plugins/keyboard.js';
 export { ClipboardPlugin } from './plugins/clipboard.js';

@@ -16,8 +16,7 @@
       Editor, Node, Field,
       TextField, IntegerField, DecimalField,
       CheckboxField, SelectField, ButtonField,
-      SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin,
-      ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin
+      SelectionPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin
     } from "yanbe";
 
     // ── Custom field type ──────────────────────────────────────────────────
@@ -48,7 +47,7 @@
 
     // ── Editor setup ───────────────────────────────────────────────────────
     const editor = new Editor('editor', {
-      plugins: [SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin]
+      plugins: [SelectionPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin]
     });
 
     // Node with all built-in field types

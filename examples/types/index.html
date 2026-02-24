@@ -14,12 +14,11 @@
   <script type="module">
     import {
       Editor, Node, Connection,
-      SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin,
-      ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin
+      SelectionPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin
     } from "yanbe";
 
     const editor = new Editor('editor', {
-      plugins: [SelectionPlugin, RectSelectPlugin, SelectionBoundsPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin]
+      plugins: [SelectionPlugin, ContextMenuPlugin, KeyboardPlugin, ClipboardPlugin]
     });
     const nodeA = new Node('Node A', 100, 100);
     const nodeB = new Node('Node B', 100, 300);

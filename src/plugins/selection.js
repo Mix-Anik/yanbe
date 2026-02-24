@@ -4,12 +4,28 @@ import { GRID, DRAG_DEBOUNCE_MS, EVENTS } from '../constants.js';
 export class SelectionPlugin {
     constructor(editor) {
         this.editor = editor;
+
         this._onClick = (e) => this.onClick(e);
         document.addEventListener('click', this._onClick);
+        this._onMouseDown = (e) => this.onSelecting(e);
+        document.addEventListener('mousedown', this._onMouseDown);
+
+        this.boundsEl = document.createElement('div');
+        this.boundsEl.className = 'selection-bounds';
+        this.boundsEl.style.display = 'none';
+        editor.viewport.appendChild(this.boundsEl);
+        this.boundsEl.addEventListener('mousedown', (e) => this.onBoundsDragStart(e));
+
+        this._unsubSelection = editor.on(EVENTS.SELECTION_CHANGE, ({ selection }) => this.updateBounds(selection));
+        this._unsubMoved = editor.on(EVENTS.NODE_MOVED, () => this.updateBounds(editor.selection));
     }
 
     destroy() {
         document.removeEventListener('click', this._onClick);
+        document.removeEventListener('mousedown', this._onMouseDown);
+        this._unsubSelection();
+        this._unsubMoved();
+        this.boundsEl.remove();
     }
 
     onClick(e) {
@@ -20,18 +36,6 @@ export class SelectionPlugin {
 
         const nodeEl = e.target.closest('.node');
         if (nodeEl) this.editor.addToSelection(nodeEl.__ref);
-    }
-}
-
-export class RectSelectPlugin {
-    constructor(editor) {
-        this.editor = editor;
-        this._onMouseDown = (e) => this.onSelecting(e);
-        document.addEventListener('mousedown', this._onMouseDown);
-    }
-
-    destroy() {
-        document.removeEventListener('mousedown', this._onMouseDown);
     }
 
     onSelecting(e) {
@@ -86,29 +90,8 @@ export class RectSelectPlugin {
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     }
-}
 
-export class SelectionBoundsPlugin {
-    constructor(editor) {
-        this.editor = editor;
-        this.element = document.createElement('div');
-        this.element.className = 'selection-bounds';
-        this.element.style.display = 'none';
-        this.editor.viewport.appendChild(this.element);
-
-        this.element.addEventListener('mousedown', (e) => this.onDragStart(e));
-
-        this._unsubSelection = editor.on(EVENTS.SELECTION_CHANGE, ({ selection }) => this.update(selection));
-        this._unsubMoved = editor.on(EVENTS.NODE_MOVED, () => this.update(editor.selection));
-    }
-
-    destroy() {
-        this._unsubSelection();
-        this._unsubMoved();
-        this.element.remove();
-    }
-
-    onDragStart(e) {
+    onBoundsDragStart(e) {
         if (e.button !== 0) return;
 
         this.editor.isDragging = true;
@@ -145,9 +128,9 @@ export class SelectionBoundsPlugin {
         document.addEventListener('mouseup', onMouseUp);
     }
 
-    update(selection) {
+    updateBounds(selection) {
         if (selection.length <= 1) {
-            this.element.style.display = 'none';
+            this.boundsEl.style.display = 'none';
             return;
         }
 
@@ -161,10 +144,10 @@ export class SelectionBoundsPlugin {
             maxY = Math.max(maxY, node.y + node.element.offsetHeight);
         }
 
-        this.element.style.left = `${minX - padding}px`;
-        this.element.style.top = `${minY - padding}px`;
-        this.element.style.width = `${maxX - minX + padding * 2}px`;
-        this.element.style.height = `${maxY - minY + padding * 2}px`;
-        this.element.style.display = 'block';
+        this.boundsEl.style.left = `${minX - padding}px`;
+        this.boundsEl.style.top = `${minY - padding}px`;
+        this.boundsEl.style.width = `${maxX - minX + padding * 2}px`;
+        this.boundsEl.style.height = `${maxY - minY + padding * 2}px`;
+        this.boundsEl.style.display = 'block';
     }
 }
