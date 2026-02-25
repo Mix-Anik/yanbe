@@ -7,9 +7,8 @@ export { Connection } from './components/connection.js';
 export { Field } from './components/field.js';
 export { ButtonField } from './components/fields/button.js';
 export { TextField } from './components/fields/text.js';
-export { IntegerField } from './components/fields/integer.js';
+export { NumberField } from './components/fields/number.js';
 export { SelectField } from './components/fields/select.js';
-export { DecimalField } from './components/fields/decimal.js';
 export { CheckboxField } from './components/fields/checkbox.js';
 export { ColorField } from './components/fields/color.js';
 

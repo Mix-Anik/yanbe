@@ -27,8 +27,7 @@ export class ButtonField extends Field {
     setValue() {}
 
     toJSON() {
-        const { key: _key, ...base } = super.toJSON();
-        return base;
+        return { ...super.toJSON(), text: this.text };
     }
 }
 

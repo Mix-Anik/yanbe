@@ -114,8 +114,7 @@ body {
     font-size: 11px;
 }
 
-.field-row input[type="text"],
-.field-row input[type="number"] {
+.field-row input[type="text"] {
     width: 100%;
     box-sizing: border-box;
     background: var(--field-input-bg);
@@ -127,10 +126,63 @@ body {
     min-width: 0;
 }
 
-.field-row input[type="text"]:focus,
-.field-row input[type="number"]:focus {
+.field-row input[type="text"]:focus {
     outline: none;
     border-color: var(--accent);
+}
+
+.number-input {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--field-input-bg);
+    border: 1px solid var(--field-border);
+    border-radius: 3px;
+}
+
+.number-input:focus-within {
+    border-color: var(--accent);
+}
+
+.number-input input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--n-text);
+    font-size: 12px;
+    padding: 2px 2px;
+    text-align: center;
+}
+
+.number-input input[type="number"]:focus {
+    outline: none;
+}
+
+.number-input input[type="number"]::-webkit-inner-spin-button,
+.number-input input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.number-btn {
+    background: transparent;
+    border: none;
+    color: var(--n-text);
+    font-size: 12px;
+    padding: 0 5px;
+    cursor: pointer;
+    opacity: 0.4;
+    line-height: 1;
+    user-select: none;
+    transition: opacity 0.1s, color 0.1s;
+}
+
+.number-btn:hover {
+    opacity: 1;
+    color: var(--accent);
 }
 
 .field-row input[type="checkbox"] {
