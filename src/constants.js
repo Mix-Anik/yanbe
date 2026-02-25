@@ -6,7 +6,7 @@ export const GRID = {
 };
 
 export const NODE = {
-    DEFAULT_WIDTH:  140,
+    DEFAULT_WIDTH:  160,
     DEFAULT_HEIGHT: 60
 };
 

@@ -43,7 +43,7 @@ body {
 
 .node {
     position: absolute;
-    width: 140px;
+    width: 160px;
     min-height: 36px;
     background: var(--n-bg);
     border: 2px solid var(--n-border);
