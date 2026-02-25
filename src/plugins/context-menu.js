@@ -69,7 +69,8 @@ export class ContextMenuPlugin {
     }
 
     addNodeHandler(e) {
-        const node = new Node('New Node', e.clientX, e.clientY);
+        const { x, y } = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
+        const node = new Node('New Node', x, y);
         this.editor.addNode(node);
     }
 
