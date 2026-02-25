@@ -6,7 +6,7 @@ export class ContextMenuPlugin {
         this.editor = editor;
         this.buttons = [
             {label: 'Add Node', shortcut: null, handler: (e) => this.addNodeHandler(e), ctx: null},
-            {label: 'Delete', shortcut: 'del', handler: () => this.deleteHandler(), ctx: ['node']}
+            {label: 'Delete', shortcut: 'del', handler: () => this.deleteHandler(), ctx: ['node', 'selection-bounds']}
         ];
         this.listeners = [];
 
@@ -39,10 +39,12 @@ export class ContextMenuPlugin {
 
         for (let btn of this.buttons) {
             if (btn.ctx) {
-                if (!btn.ctx.some(c => e.target.classList.contains(c)))
+                const foundElement = btn.ctx.map(c => e.target.closest(`.${c}`)).find(Boolean);
+                if (!foundElement)
                     continue;
 
-                this.editor.emit(EVENTS.ACTION_SELECT, { node: e.target.__ref });
+                if (foundElement.__ref)
+                    this.editor.emit(EVENTS.ACTION_SELECT, { node: foundElement.__ref });
             }
 
             const el = document.createElement('li');
@@ -76,7 +78,7 @@ export class ContextMenuPlugin {
 
     deleteHandler() {
         for (let obj of [...this.editor.selection]) {
-            obj.remove();
+            obj.destroy();
         }
     }
 }
