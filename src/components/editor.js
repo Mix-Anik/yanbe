@@ -1,7 +1,6 @@
-import { Node } from "./node.js";
 import { PreviewConnection } from "./connection.js";
 import { clamp } from "../helpers.js";
-import { GRID, PORT_TYPE, EVENTS } from '../constants.js';
+import { GRID, EVENTS } from '../constants.js';
 
 export class Editor {
     _listeners = new Map();
@@ -19,23 +18,11 @@ export class Editor {
         this.isDragging = false;
         this.activePort = null;
         this._lastDragTS = 0;
-        this._cursorPos = {x: 0, y: 0};
+        this.cursorPos = {x: 0, y: 0};
         this.snapToGrid = true;
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
-
-        this._onConnectionClick = (e) => this.onConnectionClick(e);
-        this._onPortClick = (e) => this.onPortClick(e);
-        this._onActivePortClick = (e) => this.onActivePortClick(e);
-        this._onNodeHold = (e) => this.onNodeHold(e);
-        this._onMouseMove = (e) => this.onMouseMove(e);
-
-        document.addEventListener('click', this._onConnectionClick);
-        document.addEventListener('click', this._onPortClick);
-        document.addEventListener('click', this._onActivePortClick);
-        document.addEventListener('mousedown', this._onNodeHold);
-        document.addEventListener('mousemove', this._onMouseMove);
 
         this.previewConnection = new PreviewConnection(this);
 
@@ -65,14 +52,16 @@ export class Editor {
     }
 
     destroy() {
+        for (const node of [...this.nodes])
+            node.destroy();
+
         this.element.removeEventListener('wheel', this.zoom);
         this.element.removeEventListener('mousedown', this.pan);
-        document.removeEventListener('click', this._onConnectionClick);
-        document.removeEventListener('click', this._onPortClick);
-        document.removeEventListener('click', this._onActivePortClick);
-        document.removeEventListener('mousedown', this._onNodeHold);
-        document.removeEventListener('mousemove', this._onMouseMove);
-        for (const plugin of this._plugins) plugin.destroy?.();
+        this.previewConnection.destroy();
+
+        for (const plugin of this._plugins)
+            plugin.destroy?.();
+
         this._listeners.clear();
     }
 
@@ -136,49 +125,6 @@ export class Editor {
         }, { once: true });
     }
 
-    onConnectionClick(e) {
-        if (!e.target.classList.contains('connection')) return;
-
-        const connection = e.target.__ref;
-        this.activePort = connection.from;
-        this.previewConnection.update({x: e.clientX, y: e.clientY});
-        this.previewConnection.show();
-        connection.remove();
-        this.highlightConnectable();
-    }
-
-    onPortClick(e) {
-        if (!e.target.classList.contains('port')) return;
-
-        const port = e.target.__ref;
-        if (port.type === PORT_TYPE.OUTPUT && port.canConnect()) {
-            this.activePort = port;
-            this.previewConnection.update({x: e.clientX, y: e.clientY});
-            this.previewConnection.show();
-            this.highlightConnectable();
-        } else if (port.type === PORT_TYPE.INPUT && this.activePort && port.canConnect(this.activePort)) {
-            this.activePort.node.connect(port.node);
-            this.activePort = null;
-            this.previewConnection.hide();
-            this.resetHighlighting();
-        }
-    }
-
-    onActivePortClick(e) {
-        if (!this.activePort || e.target.classList.contains('port') || e.target.classList.contains('connection')) return;
-
-        this.activePort = null;
-        this.previewConnection.hide();
-        this.resetHighlighting();
-    }
-
-    onMouseMove(e) {
-        this._cursorPos = this.calcOffsetPos({x: e.clientX, y: e.clientY});
-
-        if (!this.activePort) return;
-        this.previewConnection.update({x: e.clientX, y: e.clientY});
-    }
-
     highlightConnectable() {
         this.resetHighlighting();
 
@@ -192,19 +138,6 @@ export class Editor {
         for (const node of this.nodes) {
             node.element.classList.remove('disabled');
         }
-    }
-
-    onNodeHold(e) {
-        const header = e.target.closest('.node-header');
-        if (!header) return;
-
-        const nodeEl = header.closest('.node');
-        if (!nodeEl) return;
-
-        const node = nodeEl.__ref;
-        this.isDragging = true;
-        this.emit(EVENTS.NODE_HOLD, { node });
-        Node.move(node, {x: e.clientX, y: e.clientY});
     }
 
     toJSON() {

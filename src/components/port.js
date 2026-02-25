@@ -16,9 +16,9 @@ export class Port {
         this.node.headerElement.appendChild(this.element);
     }
 
-    remove() {
+    destroy() {
         for (let connection of [...this.connections.values()]) {
-            connection.remove();
+            connection.destroy();
         }
         this.element.remove();
         this.element = null;
@@ -56,6 +56,20 @@ export class InputPort extends Port {
         this.many = options.many ?? true;
     }
 
+    create() {
+        super.create();
+        this.element.addEventListener('click', () => {
+            const editor = this.node.editor;
+            if (!editor.activePort || !this.canConnect(editor.activePort))
+                return;
+
+            editor.activePort.node.connect(this.node);
+            editor.activePort = null;
+            editor.previewConnection.hide();
+            editor.resetHighlighting();
+        });
+    }
+
     toJSON() {
         return { ...super.toJSON(), allow: this.allow, many: this.many };
     }
@@ -78,6 +92,20 @@ export class OutputPort extends Port {
     constructor(node, options={}) {
         super(PORT_TYPE.OUTPUT, node);
         this.many = options.many ?? true;
+    }
+
+    create() {
+        super.create();
+        this.element.addEventListener('click', (e) => {
+            if (!this.canConnect())
+                return;
+
+            const editor = this.node.editor;
+            editor.activePort = this;
+            editor.previewConnection.update({ x: e.clientX, y: e.clientY });
+            editor.previewConnection.show();
+            editor.highlightConnectable();
+        });
     }
 
     toJSON() {

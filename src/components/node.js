@@ -1,13 +1,15 @@
 import { InputPort, OutputPort } from "./port.js";
-import { roundToStep, animateToWishPos } from "../helpers.js";
-import { GRID, EVENTS } from "../constants.js";
+import { animateToWishPos } from "../helpers.js";
+import { EVENTS } from "../constants.js";
+import { Draggable } from "../mixins/draggable.js";
 
-export class Node {
+export class Node extends Draggable {
     static _nextId = 0;
 
     static resetIdCounter() { Node._nextId = 0; }
 
     constructor(type, x, y, options={}) {
+        super();
         this.id = options.id ?? Node._nextId++;
         this.x = x;
         this.y = y;
@@ -41,6 +43,11 @@ export class Node {
         title.textContent = this.type;
         this.headerElement.appendChild(title);
         this.element.appendChild(this.headerElement);
+        this.headerElement.addEventListener('mousedown', (e) => {
+            editor.isDragging = true;
+            editor.emit(EVENTS.NODE_HOLD, { node: this });
+            this.startDrag({ x: e.clientX, y: e.clientY });
+        });
 
         // Body — fields
         this.bodyElement = document.createElement('div');
@@ -56,12 +63,12 @@ export class Node {
         this.ports.output.create();
     }
 
-    remove() {
+    destroy() {
         const idx = this.editor.nodes.indexOf(this);
         this.editor.nodes.splice(idx, 1);
         this.editor.emit(EVENTS.NODE_REMOVED, { node: this });
-        this.ports.input.remove();
-        this.ports.output.remove();
+        this.ports.input.destroy();
+        this.ports.output.destroy();
         this.element.remove();
     }
 
@@ -101,29 +108,12 @@ export class Node {
         };
     }
 
-    static move(instance, startPos) {
-        const startMousePos = instance.editor.calcOffsetPos(startPos);
-        const nodeOffset = {x: startMousePos.x - instance.x, y: startMousePos.y - instance.y};
-
-        const onDrag = (event) => {
-            const endMousePos = instance.editor.calcOffsetPos({x: event.clientX, y: event.clientY});
-            const snap = instance.editor.snapToGrid;
-            instance.wishPos = {
-                x: snap ? roundToStep((endMousePos.x - nodeOffset.x), GRID.SIZE) : endMousePos.x - nodeOffset.x,
-                y: snap ? roundToStep((endMousePos.y - nodeOffset.y), GRID.SIZE) : endMousePos.y - nodeOffset.y
-            };
-
-            if (!instance.animating) {
-                instance.animating = true;
-                animateToWishPos(instance, () => instance.editor.emit(EVENTS.NODE_MOVED, { node: instance }));
-            }
-        };
-
-        document.addEventListener('mousemove', onDrag);
-        document.addEventListener('mouseup', () => {
-            document.removeEventListener('mousemove', onDrag);
-            instance.editor.isDragging = false;
-            instance.editor._lastDragTS = Date.now();
-        }, { once: true });
+    moveTo(x, y) {
+        this.wishPos = { x, y };
+        if (!this.animating) {
+            this.animating = true;
+            animateToWishPos(this, () => this.editor.emit(EVENTS.NODE_MOVED, { node: this }));
+        }
     }
+
 }

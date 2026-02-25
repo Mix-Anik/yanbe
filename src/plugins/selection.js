@@ -1,7 +1,8 @@
-import { roundToStep, animateToWishPos } from '../helpers.js';
-import { GRID, DRAG_DEBOUNCE_MS, EVENTS } from '../constants.js';
+import { DRAG_DEBOUNCE_MS, EVENTS } from '../constants.js';
+import { Draggable } from '../mixins/draggable.js';
 
 export class SelectionPlugin {
+
     constructor(editor) {
         this.editor = editor;
         editor.selection = [];
@@ -145,39 +146,8 @@ export class SelectionPlugin {
 
     onBoundsDragStart(e) {
         if (e.button !== 0) return;
-
-        this.editor.isDragging = true;
-
-        const startCanvasPos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
-        const startPositions = this.editor.selection.map(node => ({node, x: node.x, y: node.y}));
-
-        const onMouseMove = (e) => {
-            const currentPos = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
-            const dx = currentPos.x - startCanvasPos.x;
-            const dy = currentPos.y - startCanvasPos.y;
-            const snap = this.editor.snapToGrid;
-
-            for (const {node, x, y} of startPositions) {
-                node.wishPos = {
-                    x: snap ? roundToStep(x + dx, GRID.SIZE) : x + dx,
-                    y: snap ? roundToStep(y + dy, GRID.SIZE) : y + dy
-                };
-                if (!node.animating) {
-                    node.animating = true;
-                    animateToWishPos(node, () => this.editor.emit(EVENTS.NODE_MOVED, { node }));
-                }
-            }
-        };
-
-        const onMouseUp = () => {
-            this.editor.isDragging = false;
-            this.editor._lastDragTS = Date.now();
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        };
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
+        const targets = this.editor.selection.map(node => ({ item: node, x: node.x, y: node.y }));
+        Draggable.startGroup(this.editor, { x: e.clientX, y: e.clientY }, targets);
     }
 
     updateBounds(selection) {

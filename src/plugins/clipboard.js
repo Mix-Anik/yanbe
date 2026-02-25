@@ -54,8 +54,8 @@ export class ClipboardPlugin {
             maxX = Math.max(maxX, n.x + NODE.DEFAULT_WIDTH);
             maxY = Math.max(maxY, n.y + NODE.DEFAULT_HEIGHT);
         }
-        const dx = this.editor._cursorPos.x - (minX + maxX) / 2;
-        const dy = this.editor._cursorPos.y - (minY + maxY) / 2;
+        const dx = this.editor.cursorPos.x - (minX + maxX) / 2;
+        const dy = this.editor.cursorPos.y - (minY + maxY) / 2;
 
         const idMap = new Map();
         const newNodes = [];
@@ -88,7 +88,8 @@ export class ClipboardPlugin {
             }
         } catch (err) {
             console.error('Paste failed, rolling back.', err);
-            for (const node of newNodes) node.remove();
+            for (const node of newNodes)
+                node.destroy();
             return;
         }
 
