@@ -19,6 +19,7 @@ export class Node extends Draggable {
         this.titleElement = null;
         this.bodyElement = null;
         this.animating = false;
+        this.collapsed = options.collapsed ?? false;
         this.wishPos = {x: 0, y: 0};
         this.fields = options.fields ?? [];
         this.ports = {
@@ -35,6 +36,9 @@ export class Node extends Draggable {
         this.element.style.left = `${this.x}px`;
         this.element.style.top = `${this.y}px`;
         this.element.__ref = this;
+
+        if (this.collapsed)
+            this.element.classList.add('collapsed');
 
         // Header — drag handle and port anchor
         this.headerElement = document.createElement('div');
@@ -102,6 +106,27 @@ export class Node extends Draggable {
                 output: this.ports.output.toJSON()
             }
         };
+    }
+
+    toggleCollapse() {
+        this.collapsed = !this.collapsed;
+        const body = this.bodyElement;
+
+        if (this.collapsed) {
+            body.style.height = `${body.scrollHeight}px`;
+            body.offsetHeight; // force reflow so transition fires
+            this.element.classList.add('collapsed');
+            body.style.height = '0';
+        } else {
+            this.element.classList.remove('collapsed');
+            body.style.height = `${body.scrollHeight}px`;
+            const onEnd = (e) => {
+                if (e.propertyName !== 'height') return;
+                body.style.height = '';
+                body.removeEventListener('transitionend', onEnd);
+            };
+            body.addEventListener('transitionend', onEnd);
+        }
     }
 
     rename() {

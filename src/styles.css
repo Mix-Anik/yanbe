@@ -102,10 +102,21 @@ ul {
     gap: 5px 6px;
     padding: 6px 8px;
     align-items: center;
+    overflow: hidden;
+    transition: height 0.2s linear, padding-top 0.2s ease, padding-bottom 0.2s ease;
 }
 
 .node-body:empty {
     display: none;
+}
+
+.node.collapsed .node-body {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.node.collapsed .node-header {
+    border-bottom: none;
 }
 
 .field-row {

@@ -6,6 +6,7 @@ export class ContextMenuPlugin {
         this.editor = editor;
         this.buttons = [
             {label: 'Add Node', shortcut: null, handler: (e) => this.addNodeHandler(e), ctx: null},
+            {label: (node) => node.collapsed ? 'Expand' : 'Collapse', shortcut: null, handler: () => this.collapseNodeHandler(), ctx: ['node']},
             {label: 'Delete', shortcut: 'del', handler: () => this.deleteHandler(), ctx: ['node', 'selection-bounds']}
         ];
         this.listeners = [];
@@ -38,19 +39,24 @@ export class ContextMenuPlugin {
         this.element.appendChild(btnList);
 
         for (let btn of this.buttons) {
+            let label = null;
+
             if (btn.ctx) {
                 const foundElement = btn.ctx.map(c => e.target.closest(`.${c}`)).find(Boolean);
                 if (!foundElement)
                     continue;
 
-                if (foundElement.__ref)
+                if (foundElement.__ref) {
                     this.editor.emit(EVENTS.ACTION_SELECT, { node: foundElement.__ref });
+                    label = typeof btn.label === 'function' ? btn.label(foundElement.__ref) : btn.label;
+                }
             }
 
+            label = label ?? btn.label;
             const el = document.createElement('li');
             el.innerHTML = `
                 <button type="button" class="ctx-menu-btn">
-                    <div class="label">${btn.label}</div>
+                    <div class="label">${label}</div>
                     <kbd class="shortcut">${btn.shortcut ?? ''}</kbd>
                 </button>
             `;
@@ -74,6 +80,12 @@ export class ContextMenuPlugin {
         const { x, y } = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
         const node = new Node('New Node', x, y);
         this.editor.addNode(node);
+    }
+
+    collapseNodeHandler() {
+        for (let obj of [...this.editor.selection]) {
+            obj.toggleCollapse();
+        }
     }
 
     deleteHandler() {
