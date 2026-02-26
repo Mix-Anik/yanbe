@@ -16,6 +16,7 @@ export class Node extends Draggable {
         this.type = type;
         this.element = null;
         this.headerElement = null;
+        this.titleElement = null;
         this.bodyElement = null;
         this.animating = false;
         this.wishPos = {x: 0, y: 0};
@@ -38,16 +39,17 @@ export class Node extends Draggable {
         // Header — drag handle and port anchor
         this.headerElement = document.createElement('div');
         this.headerElement.className = 'node-header';
-        const title = document.createElement('span');
-        title.className = 'node-title';
-        title.textContent = this.type;
-        this.headerElement.appendChild(title);
+        this.titleElement = document.createElement('span');
+        this.titleElement.className = 'node-title';
+        this.titleElement.textContent = this.type;
+        this.headerElement.appendChild(this.titleElement);
         this.element.appendChild(this.headerElement);
         this.headerElement.addEventListener('mousedown', (e) => {
             editor.isDragging = true;
             editor.emit(EVENTS.NODE_HOLD, { node: this });
             this.startDrag({ x: e.clientX, y: e.clientY });
         });
+        this.headerElement.addEventListener('dblclick', () => this.rename());
 
         // Body — fields
         this.bodyElement = document.createElement('div');
@@ -89,23 +91,41 @@ export class Node extends Draggable {
     }
 
     toJSON() {
-        const fields = this.fields.map(f => {
-            const def = f.toJSON();
-            if (f.key && f.getValue) def.value = f.getValue();
-            return def;
-        });
-
         return {
             id: this.id,
             type: this.type,
             x: Math.round(this.x),
             y: Math.round(this.y),
-            fields,
+            fields: this.fields.map(f => f.toJSON()),
             ports: {
                 input: this.ports.input.toJSON(),
                 output: this.ports.output.toJSON()
             }
         };
+    }
+
+    rename() {
+        const input = document.createElement('input');
+        input.type      = 'text';
+        input.className = 'node-title-input';
+        input.value     = this.type;
+
+        let cancelled = false;
+        input.addEventListener('mousedown', e => e.stopPropagation());
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter')  input.blur();
+            if (e.key === 'Escape') { cancelled = true; input.blur(); }
+        });
+        input.addEventListener('blur', () => {
+            const newName = cancelled ? this.type : (input.value.trim() || this.type);
+            this.type = newName;
+            this.titleElement.textContent = newName;
+            input.replaceWith(this.titleElement);
+        });
+
+        this.titleElement.replaceWith(input);
+        input.focus();
+        input.select();
     }
 
     moveTo(x, y) {

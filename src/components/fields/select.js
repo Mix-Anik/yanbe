@@ -8,6 +8,7 @@ export class SelectField extends Field {
         this.options = options.options ?? [];
         this._value  = options.value ?? options.default ?? '';
         this._popup = null;
+        this._valueEl = null;
     }
 
     _createElement() {
@@ -83,8 +84,7 @@ export class SelectField extends Field {
 
     setValue(value) {
         this._value = value;
-        if (this._valueEl)
-            this._valueEl.textContent = value;
+        this._valueEl.textContent = value;
     }
 
     toJSON() {

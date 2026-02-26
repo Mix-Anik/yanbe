@@ -62,7 +62,9 @@ export class ClipboardPlugin {
 
         try {
             for (const nodeData of data.nodes) {
+                console.log('fields Data: ', nodeData.fields);
                 const fields = (nodeData.fields ?? []).map(f => Field.fromJSON(f));
+                console.log(fields);
 
                 const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
                     fields,
@@ -72,12 +74,6 @@ export class ClipboardPlugin {
                 idMap.set(nodeData.id, node);
                 newNodes.push(node);
                 this.editor.addNode(node);
-
-                for (let i = 0; i < fields.length; i++) {
-                    const saved = nodeData.fields[i];
-                    if (saved.value !== undefined)
-                        fields[i].setValue(saved.value);
-                }
             }
 
             for (const connData of data.connections) {

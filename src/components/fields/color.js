@@ -5,13 +5,14 @@ export class ColorField extends Field {
 
     constructor(options = {}) {
         super(options);
-        this.default = options.default ?? '#ffffff';
+        this._value = options.value ?? options.default ?? '#ffffff';
     }
 
     _createElement() {
         const el = document.createElement('input');
         el.type = 'color';
-        el.value = this.default;
+        el.value = this._value;
+        el.addEventListener('input', () => { this._value = el.value; });
         el.addEventListener('mousedown', e => e.stopPropagation());
         return el;
     }
@@ -21,11 +22,12 @@ export class ColorField extends Field {
     }
 
     setValue(value) {
+        this._value = value;
         this.element.value = value;
     }
 
     toJSON() {
-        return { ...super.toJSON(), default: this.default };
+        return { ...super.toJSON(), value: this._value };
     }
 }
 

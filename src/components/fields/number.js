@@ -6,10 +6,11 @@ export class NumberField extends Field {
     constructor(options = {}) {
         super(options);
         this.integer = options.integer ?? false;
-        this.default = options.default ?? options.value ?? 0;
-        this.min     = options.min     ?? null;
-        this.max     = options.max     ?? null;
-        this.step    = options.step    ?? (this.integer ? 1 : 'any');
+        this._value = options.value ?? options.default ?? 0;
+        this.min = options.min ?? null;
+        this.max = options.max ?? null;
+        this.step = options.step ?? (this.integer ? 1 : 'any');
+        this._input = null;
     }
 
     _createElement() {
@@ -22,12 +23,12 @@ export class NumberField extends Field {
         dec.textContent = '−';
         dec.tabIndex = -1;
 
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.step = this.step;
-        input.value = this.default;
-        if (this.min !== null) input.min = this.min;
-        if (this.max !== null) input.max = this.max;
+        this._input = document.createElement('input');
+        this._input.type = 'number';
+        this._input.step = this.step;
+        this._input.value = this._value;
+        if (this.min !== null) this._input.min = this.min;
+        if (this.max !== null) this._input.max = this.max;
 
         const inc = document.createElement('button');
         inc.type = 'button';
@@ -35,15 +36,14 @@ export class NumberField extends Field {
         inc.textContent = '+';
         inc.tabIndex = -1;
 
-        dec.addEventListener('click', () => input.stepDown());
-        inc.addEventListener('click', () => input.stepUp());
+        dec.addEventListener('click', () => this.setValue(this._value - this.step));
+        inc.addEventListener('click', () => this.setValue(this._value + this.step));
         wrapper.addEventListener('mousedown', e => e.stopPropagation());
 
         wrapper.appendChild(dec);
-        wrapper.appendChild(input);
+        wrapper.appendChild(this._input);
         wrapper.appendChild(inc);
 
-        this._input = input;
         return wrapper;
     }
 
@@ -53,21 +53,12 @@ export class NumberField extends Field {
     }
 
     setValue(value) {
-        this._input.value = value;
-    }
-
-    clone() {
-        return new NumberField(this.toJSON());
+        this._value = Number(value);
+        this._input.value = this._value;
     }
 
     toJSON() {
-        const base = super.toJSON();
-        if (this.integer) base.integer = true;
-        if (this.min !== null) base.min = this.min;
-        if (this.max !== null) base.max = this.max;
-        const defaultStep = this.integer ? 1 : 'any';
-        if (this.step !== defaultStep) base.step = this.step;
-        return { ...base, default: this.default };
+        return { ...super.toJSON(), integer: this.integer, min: this.min, max: this.max, step: this.step, value: this._value };
     }
 }
 
