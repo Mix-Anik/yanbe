@@ -6,32 +6,89 @@ export class SelectField extends Field {
     constructor(options = {}) {
         super(options);
         this.options = options.options ?? [];
-        this.default = options.default ?? options.value ?? (this.options[0] ?? '');
+        this._value  = options.value ?? options.default ?? '';
+        this._popup = null;
     }
 
     _createElement() {
-        const el = document.createElement('select');
+        const btn = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'select-trigger';
+
+        this._valueEl = document.createElement('span');
+        this._valueEl.className   = 'select-trigger-value';
+        this._valueEl.textContent = this._value;
+
+        const arrow = document.createElement('span');
+        arrow.className   = 'select-trigger-arrow';
+        arrow.textContent = '▾';
+
+        btn.appendChild(this._valueEl);
+        btn.appendChild(arrow);
+
+        btn.addEventListener('mousedown', e => e.stopPropagation());
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            this.#showDropdown(btn);
+        });
+
+        return btn;
+    }
+
+    #showDropdown(anchor) {
+        this.#hideDropdown();
+
+        const rect = anchor.getBoundingClientRect();
+
+        this._popup = document.createElement('div');
+        this._popup.className = 'select-dropdown';
+        this._popup.style.left = `${rect.left}px`;
+        this._popup.style.top = `${rect.bottom}px`;
+        this._popup.style.minWidth = `${rect.width}px`;
+
+        const ul = document.createElement('ul');
+        this._popup.appendChild(ul);
+
         for (const opt of this.options) {
-            const optEl = document.createElement('option');
-            optEl.value = opt;
-            optEl.textContent = opt;
-            el.appendChild(optEl);
+            const li  = document.createElement('li');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'select-option' + (opt === this._value ? ' select-option--selected' : '');
+            btn.textContent = opt;
+            btn.addEventListener('click', () => {
+                this.#hideDropdown();
+                this.setValue(opt);
+            });
+            li.appendChild(btn);
+            ul.appendChild(li);
         }
-        el.value = this.default;
-        el.addEventListener('mousedown', e => e.stopPropagation());
-        return el;
+
+        document.body.appendChild(this._popup);
+
+        this._closeHandler = () => this.#hideDropdown();
+        setTimeout(() => document.addEventListener('click', this._closeHandler, { once: true }), 0);
+    }
+
+    #hideDropdown() {
+        document.removeEventListener('click', this._closeHandler);
+        if (this._popup) {
+            this._popup.remove();
+            this._popup = null;
+        }
     }
 
     getValue() {
-        return this.element.value;
+        return this._value;
     }
 
     setValue(value) {
-        this.element.value = value;
+        this._value = value;
+        if (this._valueEl)
+            this._valueEl.textContent = value;
     }
 
     toJSON() {
-        return { ...super.toJSON(), options: this.options, default: this.default };
+        return { ...super.toJSON(), options: this.options, value: this._value };
     }
 }
 
