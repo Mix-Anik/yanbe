@@ -1,0 +1,96 @@
+import { Node } from '../components/node.js';
+import { EVENTS } from '../constants.js';
+
+export class ContextMenuPlugin {
+    constructor(editor) {
+        this.editor = editor;
+        this.buttons = [
+            {label: 'Add Node', shortcut: null, handler: (e) => this.addNodeHandler(e), ctx: null},
+            {label: (node) => node.collapsed ? 'Expand' : 'Collapse', shortcut: null, handler: () => this.collapseNodeHandler(), ctx: ['node']},
+            {label: 'Delete', shortcut: 'del', handler: () => this.deleteHandler(), ctx: ['node', 'selection-bounds']}
+        ];
+        this.listeners = [];
+
+        this._show = (e) => this.show(e);
+        this._hide = () => this.hide();
+        this._unsubDelete = editor.on(EVENTS.ACTION_DELETE, () => this.deleteHandler());
+
+        document.addEventListener('contextmenu', this._show);
+        document.addEventListener('click', this._hide);
+    }
+
+    destroy() {
+        document.removeEventListener('contextmenu', this._show);
+        document.removeEventListener('click', this._hide);
+        this._unsubDelete();
+        this.hide();
+    }
+
+    show(e) {
+        e.preventDefault();
+        this.hide();
+
+        this.element = document.createElement('div');
+        this.element.className = 'ctx-menu';
+        this.element.style.left = `${e.clientX}px`;
+        this.element.style.top = `${e.clientY}px`;
+        this.element.__ref = this;
+        const btnList = document.createElement('ul');
+        this.element.appendChild(btnList);
+
+        for (let btn of this.buttons) {
+            let label = null;
+
+            if (btn.ctx) {
+                const foundElement = btn.ctx.map(c => e.target.closest(`.${c}`)).find(Boolean);
+                if (!foundElement)
+                    continue;
+
+                if (foundElement.__ref) {
+                    this.editor.emit(EVENTS.ACTION_SELECT, { node: foundElement.__ref });
+                    label = typeof btn.label === 'function' ? btn.label(foundElement.__ref) : btn.label;
+                }
+            }
+
+            label = label ?? btn.label;
+            const el = document.createElement('li');
+            el.innerHTML = `
+                <button type="button" class="ctx-menu-btn">
+                    <div class="label">${label}</div>
+                    <kbd class="shortcut">${btn.shortcut ?? ''}</kbd>
+                </button>
+            `;
+            el.addEventListener('click', btn.handler);
+            this.listeners.push({element: el, type: 'click', handler: btn.handler});
+            btnList.appendChild(el);
+        }
+
+        document.body.appendChild(this.element);
+    }
+
+    hide() {
+        this.listeners.forEach(entry => entry.element.removeEventListener(entry.type, entry.handler));
+        this.listeners = [];
+
+        if (this.element)
+            this.element.remove();
+    }
+
+    addNodeHandler(e) {
+        const { x, y } = this.editor.calcOffsetPos({x: e.clientX, y: e.clientY});
+        const node = new Node('New Node', x, y);
+        this.editor.addNode(node);
+    }
+
+    collapseNodeHandler() {
+        for (let obj of [...this.editor.selection]) {
+            obj.toggleCollapse();
+        }
+    }
+
+    deleteHandler() {
+        for (let obj of [...this.editor.selection]) {
+            obj.destroy();
+        }
+    }
+}
