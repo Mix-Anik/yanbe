@@ -47,7 +47,7 @@ export class ContextMenuPlugin {
                     continue;
 
                 if (foundElement.__ref) {
-                    this.editor.emit(EVENTS.ACTION_SELECT, { node: foundElement.__ref });
+                    this.editor.emit(EVENTS.ACTION_SELECT, { obj: foundElement.__ref });
                     label = typeof btn.label === 'function' ? btn.label(foundElement.__ref) : btn.label;
                 }
             }

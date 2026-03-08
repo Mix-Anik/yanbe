@@ -377,6 +377,7 @@ svg {
 .active,
 .node.active .node-header {
     border-color: var(--accent);
+    stroke: var(--accent);
 }
 
 .ctx-menu {

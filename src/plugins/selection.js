@@ -21,12 +21,6 @@ export class SelectionPlugin {
         this._unsubSelection = editor.on(EVENTS.SELECTION_CHANGE, ({ selection }) => this.updateBounds(selection));
         this._unsubMoved = editor.on(EVENTS.NODE_MOVED, () => this.updateBounds(editor.selection));
 
-        this._unsubNodeHold = editor.on(EVENTS.NODE_HOLD, ({ node }) => {
-            if (!editor.selection.includes(node))
-                this.clearSelection();
-            this.addToSelection(node);
-        });
-
         this._unsubNodeRemoved = editor.on(EVENTS.NODE_REMOVED, ({ node }) => {
             if (editor.selection.includes(node))
                 this.removeFromSelection(node);
@@ -38,8 +32,10 @@ export class SelectionPlugin {
                 this.addToSelection(node);
         });
 
-        this._unsubSelect = editor.on(EVENTS.ACTION_SELECT, ({ node }) => {
-            this.addToSelection(node);
+        this._unsubSelect = editor.on(EVENTS.ACTION_SELECT, ({ obj }) => {
+            if (!editor.selection.includes(obj))
+                this.clearSelection();
+            this.addToSelection(obj);
         });
     }
 
@@ -48,7 +44,6 @@ export class SelectionPlugin {
         document.removeEventListener('mousedown', this._onMouseDown);
         this._unsubSelection();
         this._unsubMoved();
-        this._unsubNodeHold();
         this._unsubNodeRemoved();
         this._unsubPaste();
         this._unsubSelect();

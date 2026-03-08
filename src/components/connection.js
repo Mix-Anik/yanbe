@@ -1,4 +1,4 @@
-import { BEZIER_STRENGTH } from "../constants.js";
+import { BEZIER_STRENGTH, EVENTS } from "../constants.js";
 import { cubicBezierPath } from "../helpers.js";
 
 export class Connection {
@@ -18,6 +18,13 @@ export class Connection {
         this.update();
 
         this.element.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const editor = this.from.node.editor;
+            editor.emit(EVENTS.ACTION_SELECT, { obj: this });
+        });
+
+        this.element.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
             const editor = this.from.node.editor;
             editor.activePort = this.from;
             editor.previewConnection.update({ x: e.clientX, y: e.clientY });

@@ -50,7 +50,7 @@ export class Node extends Draggable {
         this.element.appendChild(this.headerElement);
         this.headerElement.addEventListener('mousedown', (e) => {
             editor.isDragging = true;
-            editor.emit(EVENTS.NODE_HOLD, { node: this });
+            editor.emit(EVENTS.ACTION_SELECT, { obj: this });
             this.startDrag({ x: e.clientX, y: e.clientY });
         });
         this.headerElement.addEventListener('dblclick', () => this.rename());
