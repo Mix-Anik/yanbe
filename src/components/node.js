@@ -71,7 +71,7 @@ export class Node extends Draggable {
     destroy() {
         const idx = this.editor.nodes.indexOf(this);
         this.editor.nodes.splice(idx, 1);
-        this.editor.emit(EVENTS.NODE_REMOVED, { node: this });
+        this.editor.emit(EVENTS.ACTION_UNSELECT, { obj: this });
         this.ports.input.destroy();
         this.ports.output.destroy();
         this.element.remove();

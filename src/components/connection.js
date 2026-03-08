@@ -19,15 +19,14 @@ export class Connection {
 
         this.element.addEventListener('click', (e) => {
             e.stopPropagation();
-            const editor = this.from.node.editor;
-            editor.emit(EVENTS.ACTION_SELECT, { obj: this });
+            this.from.node.editor.emit(EVENTS.ACTION_SELECT, { obj: this });
         });
 
         this.element.addEventListener('dblclick', (e) => {
             e.stopPropagation();
             const editor = this.from.node.editor;
+            editor.emit(EVENTS.ACTION_UNSELECT, { obj: this });
             editor.activePort = this.from;
-            editor.previewConnection.update({ x: e.clientX, y: e.clientY });
             editor.previewConnection.show();
             this.destroy();
             editor.highlightConnectable();
@@ -64,7 +63,7 @@ export class PreviewConnection {
         this._onMouseMove = (e) => {
             editor.cursorPos = editor.calcOffsetPos({ x: e.clientX, y: e.clientY });
             if (editor.activePort)
-                this.update({ x: e.clientX, y: e.clientY });
+                this.update();
         };
         document.addEventListener('mousemove', this._onMouseMove);
 
@@ -88,13 +87,14 @@ export class PreviewConnection {
         this.element.remove();
     }
 
-    update(mousePos) {
+    update() {
         const { x: x1, y: y1 } = this.editor.activePort.getCenter();
-        const { x: x2, y: y2 } = this.editor.calcOffsetPos(mousePos);
+        const { x: x2, y: y2 } = this.editor.cursorPos;
         this.element.setAttribute('d', cubicBezierPath(x1, y1, x2, y2, BEZIER_STRENGTH));
     }
 
     show() {
+        this.update();
         this.element.style.display = 'block';
     }
 

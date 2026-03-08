@@ -62,10 +62,7 @@ export class ClipboardPlugin {
 
         try {
             for (const nodeData of data.nodes) {
-                console.log('fields Data: ', nodeData.fields);
                 const fields = (nodeData.fields ?? []).map(f => Field.fromJSON(f));
-                console.log(fields);
-
                 const node = new Node(nodeData.type, nodeData.x + dx, nodeData.y + dy, {
                     fields,
                     input: { allow: nodeData.ports.input.allow, many: nodeData.ports.input.many },

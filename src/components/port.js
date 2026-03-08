@@ -60,13 +60,22 @@ export class InputPort extends Port {
         super.create();
         this.element.addEventListener('click', () => {
             const editor = this.node.editor;
-            if (!editor.activePort || !this.canConnect(editor.activePort))
-                return;
 
-            editor.activePort.node.connect(this.node);
-            editor.activePort = null;
-            editor.previewConnection.hide();
-            editor.resetHighlighting();
+            if (editor.activePort) {
+                if (!this.canConnect(editor.activePort))
+                    return;
+
+                editor.activePort.node.connect(this.node);
+                editor.activePort = null;
+                editor.previewConnection.hide();
+                editor.resetHighlighting();
+            } else if (this.connections.size === 1) {
+                const [[outputPort, connection]] = this.connections;
+                editor.activePort = outputPort;
+                connection.destroy();
+                editor.previewConnection.show();
+                editor.highlightConnectable();
+            }
         });
     }
 
@@ -102,7 +111,6 @@ export class OutputPort extends Port {
 
             const editor = this.node.editor;
             editor.activePort = this;
-            editor.previewConnection.update({ x: e.clientX, y: e.clientY });
             editor.previewConnection.show();
             editor.highlightConnectable();
         });
