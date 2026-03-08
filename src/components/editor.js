@@ -1,6 +1,6 @@
 import { PreviewConnection } from "./connection.js";
 import { clamp } from "../helpers.js";
-import { GRID, EVENTS } from '../constants.js';
+import { GRID, EVENTS, PERMISSIONS } from '../constants.js';
 
 export class Editor {
     _listeners = new Map();
@@ -20,6 +20,8 @@ export class Editor {
         this._lastDragTS = 0;
         this.cursorPos = {x: 0, y: 0};
         this.snapToGrid = true;
+        this.permissions = 0;
+        this.addPermission(options.permissions ?? 0);
 
         this.element.addEventListener('wheel', this.zoom);
         this.element.addEventListener('mousedown', this.pan);
@@ -63,6 +65,25 @@ export class Editor {
             plugin.destroy?.();
 
         this._listeners.clear();
+    }
+
+    addPermission(perm) {
+        this.permissions |= perm;
+        this._syncPermClasses();
+    }
+
+    removePermission(perm) {
+        this.permissions &= ~perm;
+        this._syncPermClasses();
+    }
+
+    hasPermission(perm) {
+        return (this.permissions & perm) !== 0;
+    }
+
+    _syncPermClasses() {
+        this.element.classList.toggle('perm-add-fields',    this.hasPermission(PERMISSIONS.ADD_FIELDS));
+        this.element.classList.toggle('perm-remove-fields', this.hasPermission(PERMISSIONS.REMOVE_FIELDS));
     }
 
     addNode(node) {

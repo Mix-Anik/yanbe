@@ -20,5 +20,6 @@ export { SelectionPlugin } from './plugins/selection.js';
 export { ContextMenuPlugin } from './plugins/context-menu.js';
 export { KeyboardPlugin } from './plugins/keyboard.js';
 export { ClipboardPlugin } from './plugins/clipboard.js';
+export { InspectorPlugin } from './plugins/inspector.js';
 
 import './styles.css';

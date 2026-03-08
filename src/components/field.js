@@ -6,6 +6,10 @@ export class Field {
         Field.#registry.set(cls.type, cls);
     }
 
+    static registeredTypes() {
+        return Field.#registry;
+    }
+
     static fromJSON(data) {
         const cls = Field.#registry.get(data.type);
         if (!cls)
@@ -17,16 +21,24 @@ export class Field {
         this.label  = options.label  ?? '';
         this.inline = options.inline ?? false;
         this.element = null;
+        this.row = null;
         this.node = null;
     }
 
     // Builds the row wrapper, calls _createElement(), stores result in this.element.
     create(node) {
         this.node = node;
-        const row = this.#createRow();
+        this.row = this.#createRow();
+        this.row.__field = this;
         this.element = this._createElement();
-        row.appendChild(this.element);
-        return row;
+        this.row.appendChild(this.element);
+        return this.row;
+    }
+
+    destroy() {
+        const idx = this.node.fields.indexOf(this);
+        if (idx !== -1) this.node.fields.splice(idx, 1);
+        this.row.remove();
     }
 
     // Override in subclass. Create and return the bare control element (no row).

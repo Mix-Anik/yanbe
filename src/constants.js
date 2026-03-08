@@ -35,3 +35,8 @@ export const EVENTS = {
     ACTION_PASTE:      'action:paste',
     ACTION_SELECT:     'action:select',
 };
+
+export const PERMISSIONS = {
+    ADD_FIELDS:    1 << 0,  // 1
+    REMOVE_FIELDS: 1 << 1,  // 2
+};

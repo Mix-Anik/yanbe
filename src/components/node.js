@@ -60,9 +60,8 @@ export class Node extends Draggable {
         this.bodyElement.className = 'node-body';
         this.element.appendChild(this.bodyElement);
 
-        for (const field of this.fields) {
+        for (const field of this.fields)
             this.bodyElement.appendChild(field.create(this));
-        }
 
         this.editor.viewport.appendChild(this.element);
         this.ports.input.create();
@@ -76,6 +75,15 @@ export class Node extends Draggable {
         this.ports.input.destroy();
         this.ports.output.destroy();
         this.element.remove();
+    }
+
+    addField(field) {
+        this.fields.push(field);
+        this.bodyElement.appendChild(field.create(this));
+    }
+
+    removeField(field) {
+        field.destroy();
     }
 
     connect(node) {
